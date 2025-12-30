@@ -1,0 +1,90 @@
+.landing-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 15px 30px;
+    color: #fff;
+}
+
+.auth-buttons {
+    display: flex;
+}
+
+.signin-button,
+.signup-button {
+    color: #fff;
+    background-color: transparent;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+.hero {
+    display: flex;
+    align-items: center;
+    height: 100vh;
+}
+
+.hero-left {
+    flex: 1;
+    background-color: #333;
+    padding: 40px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.hero-right {
+    flex: 1;
+    padding: 40px;
+}
+
+.hero-right img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.main-content {
+    padding: 60px 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.feature {
+    width: 30%;
+}
+
+.landing-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 30px;
+}
+
+.cta-button {
+    color: #fff;
+    background-color: #333;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.landing-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0;
+}
