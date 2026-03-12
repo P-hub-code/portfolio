@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- messay_logo_1 remplit tout l'écran (gravity="fill"), pas de fond ajouté -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <bitmap
+            android:src="@drawable/messay_logo_1"
+            android:gravity="center"/>
+    </item>
+</layer-list>

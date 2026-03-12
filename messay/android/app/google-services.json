@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "503374732016",
+    "project_id": "messay-7846f",
+    "storage_bucket": "messay-7846f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503374732016:android:82c9d16345c0aec6750035",
+        "android_client_info": {
+          "package_name": "com.upworkelite.messay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa-hDywddKs57a1gPzIN0Pb1I-zzhxLVo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

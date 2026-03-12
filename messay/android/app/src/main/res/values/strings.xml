@@ -1,0 +1,4 @@
+<resources>
+    <!-- Nom affiché sous l’icône Android (peut être différent du composant JS, mais on l’aligne aussi en minuscule pour cohérence visuelle) -->
+    <string name="app_name">Messay</string>
+</resources>

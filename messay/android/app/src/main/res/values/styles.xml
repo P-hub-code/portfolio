@@ -1,0 +1,12 @@
+<resources>
+    <color name="splash_yellow">#F9C203</color>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        <!-- Splash : fond jaune -->
+        <item name="android:windowBackground">@color/splash_yellow</item>
+    </style>
+
+</resources>
