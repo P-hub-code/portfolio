@@ -11,3 +11,68 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum WebhookProcessingStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+}
+
+model Order {
+  id            String        @id @default(uuid()) @db.Uuid
+  reference     String        @unique
+  description   String?
+  amount        Int
+  currency      String        @default("XOF")
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  transactions  Transaction[]
+
+  @@index([reference])
+  @@index([createdAt])
+}
+
+model Transaction {
+  id            String            @id @default(uuid()) @db.Uuid
+  internalRef   String            @unique
+  paystackRef   String?           @unique
+  orderId       String            @db.Uuid
+  order         Order             @relation(fields: [orderId], references: [id])
+  amount        Int
+  currency      String            @default("XOF")
+  channel       String?
+  status        TransactionStatus
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([internalRef])
+  @@index([paystackRef])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id               String                  @id @default(uuid()) @db.Uuid
+  event            String
+  reference        String?
+  processingStatus WebhookProcessingStatus
+  idempotencyKey   String                  @unique
+  payload          Json
+  createdAt        DateTime                @default(now())
+
+  @@index([idempotencyKey])
+  @@index([reference])
+  @@index([event])
+  @@index([processingStatus])
+  @@index([createdAt])
+}
