@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #5427e6;
+  --color-primary-container: #6d4aff;
+  --color-on-primary: #ffffff;
+  
+  --color-surface: #f9f9ff;
+  --color-surface-container: #e9edff;
+  --color-surface-container-low: #f1f3ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface: #141b2b;
+  --color-on-surface-variant: #484556;
+  
+  --color-outline: #797588;
+  
+  --color-secondary-fixed: #6bff8f;
+  --color-on-secondary-fixed-variant: #005321;
+  
+  --color-tertiary: #794b00;
+  --color-tertiary-fixed: #ffddb8;
+  
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  /* Fonts from design system */
+  --font-inter: "Inter", sans-serif;
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    background-color: #F8F9FC;
+    color: #111827;
+    font-family: var(--font-inter);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Hide scrollbar for clean dashboard look */
+::-webkit-scrollbar {
+  display: none;
+}
