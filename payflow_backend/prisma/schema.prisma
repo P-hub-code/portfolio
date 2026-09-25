@@ -25,16 +25,18 @@ enum WebhookProcessingStatus {
 }
 
 model Order {
-  id            String        @id @default(uuid()) @db.Uuid
-  reference     String        @unique
+  id            String            @id @default(uuid()) @db.Uuid
+  reference     String            @unique
   description   String?
   amount        Int
-  currency      String        @default("XOF")
+  currency      String            @default("XOF")
   customerName  String
   customerEmail String
   customerPhone String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  paymentMethod String?
+  status        TransactionStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   transactions  Transaction[]
 
   @@index([reference])
@@ -42,17 +44,17 @@ model Order {
 }
 
 model Transaction {
-  id            String            @id @default(uuid()) @db.Uuid
-  internalRef   String            @unique
-  paystackRef   String?           @unique
-  orderId       String            @db.Uuid
-  order         Order             @relation(fields: [orderId], references: [id])
-  amount        Int
-  currency      String            @default("XOF")
-  channel       String?
-  status        TransactionStatus
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id          String            @id @default(uuid()) @db.Uuid
+  internalRef String            @unique
+  paystackRef String?           @unique
+  orderId     String            @db.Uuid
+  order       Order             @relation(fields: [orderId], references: [id])
+  amount      Int
+  currency    String            @default("XOF")
+  channel     String?
+  status      TransactionStatus
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@index([internalRef])
   @@index([paystackRef])
