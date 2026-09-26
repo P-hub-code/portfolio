@@ -1,5 +1,6 @@
 import React from 'react';
-import { TransactionStatus } from '@/data/dashboard';
+
+export type TransactionStatus = 'Confirmé' | 'En attente' | 'Échec' | string;
 
 interface StatusBadgeProps {
   status: TransactionStatus;

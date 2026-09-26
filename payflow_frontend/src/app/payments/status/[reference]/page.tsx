@@ -1,12 +1,39 @@
 "use client";
 
-import { useState, use } from "react";
-import { PaymentStatus, paymentStatusData } from "@/data/payment-status";
+import { useState, useEffect, use } from "react";
+
+export type PaymentStatus = "pending" | "success" | "failed" | "error";
 
 export default function PaymentStatusPage({ params }: { params: Promise<{ reference: string }> }) {
   const [status, setStatus] = useState<PaymentStatus>("pending");
+  const [transaction, setTransaction] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
   const unwrappedParams = use(params);
   const reference = decodeURIComponent(unwrappedParams.reference);
+
+  useEffect(() => {
+    const fetchTx = async () => {
+      try {
+        const { apiFetch } = await import('@/lib/api');
+        const data = await apiFetch('/transactions');
+        const tx = data.find((t: any) => t.internalRef === reference);
+        if (tx) {
+          setTransaction(tx);
+          let apiStatus = tx.status.toLowerCase();
+          if (apiStatus === 'success' || apiStatus === 'failed' || apiStatus === 'pending') {
+             setStatus(apiStatus as any);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTx();
+  }, [reference]);
 
   return (
     <div className="flex flex-col w-full">
@@ -27,47 +54,6 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
           </div>
         </div>
 
-        {/* Barre de simulation interactive (Quick State Switcher) */}
-        <div className="bg-surface-container-low rounded-xl p-2 mb-4">
-          <div className="flex items-center justify-between mb-1.5 px-1">
-            <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider">Simulation</span>
-            <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-primary">Cliquez pour tester l'état</span>
-          </div>
-          <div className="grid grid-cols-4 gap-1.5">
-            <button
-              onClick={() => setStatus('pending')}
-              className={`py-1.5 px-2 rounded-lg font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium flex items-center justify-center gap-1 transition-all ${
-                status === 'pending' ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-              }`}
-            >
-              En cours
-            </button>
-            <button
-              onClick={() => setStatus('success')}
-              className={`py-1.5 px-2 rounded-lg font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium flex items-center justify-center gap-1 transition-all ${
-                status === 'success' ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-              }`}
-            >
-              Confirmé
-            </button>
-            <button
-              onClick={() => setStatus('failed')}
-              className={`py-1.5 px-2 rounded-lg font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium flex items-center justify-center gap-1 transition-all ${
-                status === 'failed' ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-              }`}
-            >
-              Échec
-            </button>
-            <button
-              onClick={() => setStatus('error')}
-              className={`py-1.5 px-2 rounded-lg font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium flex items-center justify-center gap-1 transition-all ${
-                status === 'error' ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-              }`}
-            >
-              Erreur
-            </button>
-          </div>
-        </div>
 
         {/* Carte Principale Unique */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm p-5 w-full transition-all">
@@ -104,7 +90,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium">
                   <span>Montant débité</span>
-                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{paymentStatusData.amount}</span>
+                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium pt-0.5">
                   <span>Statut actuel</span>
@@ -139,7 +125,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium">
                   <span>Montant débité</span>
-                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{paymentStatusData.amount}</span>
+                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium pt-0.5">
                   <span>Statut actuel</span>
@@ -174,7 +160,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium">
                   <span>Montant débité</span>
-                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{paymentStatusData.amount}</span>
+                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium pt-0.5">
                   <span>Statut actuel</span>
@@ -209,7 +195,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium">
                   <span>Montant débité</span>
-                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{paymentStatusData.amount}</span>
+                  <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-bold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                 </div>
                 <div className="flex justify-between items-center text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium pt-0.5">
                   <span>Statut actuel</span>
@@ -231,11 +217,11 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
           <div className="mt-5 pt-3.5 bg-surface-container-low/40 -mx-5 -mb-5 px-5 pb-4 rounded-b-xl flex flex-col gap-1 text-on-surface-variant font-label-code text-[12px] leading-[16px] tracking-[0.02em] font-normal">
             <div className="flex justify-between items-center">
               <span>Horodatage UTC</span>
-              <span className="font-mono text-on-surface">{paymentStatusData.timestamp}</span>
+              <span className="font-mono text-on-surface">{(transaction ? new Date(transaction.createdAt).toUTCString() : "---")}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Identifiant transaction</span>
-              <span className="font-mono text-on-surface">{paymentStatusData.transactionId}</span>
+              <span className="font-mono text-on-surface">{(transaction ? transaction.id : "---")}</span>
             </div>
           </div>
         </div>
@@ -256,47 +242,6 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
       {/* ============================================================ */}
       <div className="hidden md:flex w-full flex-col items-center justify-center min-h-[calc(100vh-8rem)] py-6">
         
-        {/* State Switcher Bar (Simulation Controls) */}
-        <div className="mb-6 flex items-center justify-between gap-2 bg-surface-container-lowest p-1 rounded-xl shadow-sm border border-outline-variant/30">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 text-on-surface-variant font-label-default text-[12px] leading-[16px] tracking-[0.01em] font-medium">
-            <span className="material-symbols-outlined text-[16px]">sync_alt</span>
-            <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium">Simulation :</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setStatus('pending')}
-              className={`px-3 py-1.5 rounded-lg text-[12px] leading-[16px] tracking-[0.01em] transition-all ${
-                status === 'pending' ? 'bg-primary-fixed text-primary-container font-medium shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low font-medium'
-              }`}
-            >
-              En cours
-            </button>
-            <button
-              onClick={() => setStatus('success')}
-              className={`px-3 py-1.5 rounded-lg text-[12px] leading-[16px] tracking-[0.01em] transition-all ${
-                status === 'success' ? 'bg-primary-fixed text-primary-container font-medium shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low font-medium'
-              }`}
-            >
-              Confirmé
-            </button>
-            <button
-              onClick={() => setStatus('failed')}
-              className={`px-3 py-1.5 rounded-lg text-[12px] leading-[16px] tracking-[0.01em] transition-all ${
-                status === 'failed' ? 'bg-primary-fixed text-primary-container font-medium shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low font-medium'
-              }`}
-            >
-              Échec
-            </button>
-            <button
-              onClick={() => setStatus('error')}
-              className={`px-3 py-1.5 rounded-lg text-[12px] leading-[16px] tracking-[0.01em] transition-all ${
-                status === 'error' ? 'bg-primary-fixed text-primary-container font-medium shadow-sm' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low font-medium'
-              }`}
-            >
-              Erreur
-            </button>
-          </div>
-        </div>
 
         {/* Main Payment Status Card */}
         <div className="w-full max-w-[520px] bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 p-8 flex flex-col">
@@ -338,7 +283,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Montant débité</span>
-                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{paymentStatusData.amount}</span>
+                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Statut actuel</span>
@@ -375,7 +320,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Montant</span>
-                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{paymentStatusData.amount}</span>
+                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Statut</span>
@@ -417,7 +362,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Montant</span>
-                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{paymentStatusData.amount}</span>
+                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Statut</span>
@@ -459,7 +404,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Montant</span>
-                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{paymentStatusData.amount}</span>
+                    <span className="font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface">{(transaction ? `${transaction.amount} ${transaction.currency}` : "---")}</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-body-secondary text-[13px] leading-[18px] font-normal text-on-surface-variant">Statut</span>
@@ -485,8 +430,8 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
 
           {/* Security / Footer stamp */}
           <div className="mt-8 pt-5 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant/70 font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium">
-            <span>Horodatage UTC: {paymentStatusData.timestamp}</span>
-            <span className="font-label-code text-[12px] leading-[16px] tracking-[0.02em] font-normal">ID: {paymentStatusData.transactionId}</span>
+            <span>Horodatage UTC: {(transaction ? new Date(transaction.createdAt).toUTCString() : "---")}</span>
+            <span className="font-label-code text-[12px] leading-[16px] tracking-[0.02em] font-normal">ID: {(transaction ? transaction.id : "---")}</span>
           </div>
         </div>
 

@@ -1,6 +1,14 @@
 import React from 'react';
-import { Transaction } from '@/data/dashboard';
 import { StatusBadge } from './StatusBadge';
+
+export interface Transaction {
+  reference: string;
+  customer: string;
+  amount: number;
+  currency: string;
+  status: string;
+  date: string;
+}
 
 interface RecentActivityProps {
   transactions: Transaction[];
@@ -26,8 +34,16 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions }) 
       </div>
 
       <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-        {/* Mobile View */}
-        <div className="divide-y divide-[#E5E7EB] md:hidden">
+        {transactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center text-[#797588]">
+            <span className="material-symbols-outlined text-[32px] opacity-50 mb-2">inbox</span>
+            <p className="text-[14px] font-medium text-[#141b2b]">Aucune activité récente</p>
+            <p className="text-[12px] mt-1">Vos dernières transactions apparaîtront ici.</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile View */}
+            <div className="divide-y divide-[#E5E7EB] md:hidden">
           {transactions.map((tx) => (
             <article key={tx.reference} className="p-3.5 hover:bg-slate-50/50 transition-colors">
               <div className="flex items-center justify-between mb-1.5">
@@ -71,8 +87,10 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions }) 
                 <td className="px-5 text-[13px] leading-[18px] text-[#797588] text-right">{tx.date}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+          </>
+        )}
       </div>
     </section>
   );

@@ -1,10 +1,58 @@
 import React from 'react';
 import Link from 'next/link';
-import { dashboardStats, recentTransactions } from '@/data/dashboard';
 import { StatCard } from '@/components/StatCard';
 import { RecentActivity } from '@/components/RecentActivity';
+import { Transaction } from '@/types';
+import { apiFetch } from '@/lib/api';
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  let transactions: any[] = [];
+  let dashboardStats = [
+    { label: "Encaissé", value: 0 },
+    { label: "Transactions", value: 0 },
+    { label: "Confirmées", value: 0 },
+    { label: "Échouées", value: 0 }
+  ];
+  let errorState = null;
+  
+  try {
+    const data: Transaction[] = await apiFetch('/transactions', { cache: 'no-store' });
+    
+    const successData = data.filter((tx) => tx.status.toLowerCase() === 'success');
+    const totalAmount = successData.reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const totalCount = data.length;
+    const successCount = successData.length;
+    const failedCount = data.filter((tx) => tx.status.toLowerCase() === 'failed').length;
+    
+    dashboardStats = [
+      { label: "Encaissé", value: totalAmount },
+      { label: "Transactions", value: totalCount },
+      { label: "Confirmées", value: successCount },
+      { label: "Échouées", value: failedCount }
+    ];
+
+    transactions = data.slice(0, 5).map((tx) => {
+      let mappedStatus = tx.status;
+      if (tx.status.toLowerCase() === 'success') mappedStatus = 'Confirmé';
+      else if (tx.status.toLowerCase() === 'pending') mappedStatus = 'En attente';
+      else if (tx.status.toLowerCase() === 'failed') mappedStatus = 'Échec';
+
+      return {
+        reference: tx.internalRef,
+        customer: tx.customerName || 'Client inconnu',
+        amount: Number(tx.amount),
+        currency: tx.currency,
+        status: mappedStatus,
+        date: new Date(tx.createdAt).toLocaleDateString('fr-FR', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        }),
+      };
+    });
+  } catch (error) {
+    console.error('Failed to fetch transactions', error);
+    errorState = 'Erreur de connexion';
+  }
+
   return (
     <div className="flex flex-col w-full">
       <div className="w-full max-w-[1200px] mx-auto md:px-8 md:py-7 flex flex-col gap-5 md:gap-8">
@@ -57,7 +105,13 @@ export default function Dashboard() {
         </section>
 
         {/* Recent Activity */}
-        <RecentActivity transactions={recentTransactions} />
+        {errorState ? (
+          <div className="p-8 text-center text-red-500 bg-white rounded-xl shadow-sm">
+            Erreur lors du chargement des transactions.
+          </div>
+        ) : (
+          <RecentActivity transactions={transactions} />
+        )}
         
       </div>
     </div>

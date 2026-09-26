@@ -1,22 +1,85 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { paymentData } from "@/data/new-payment";
 
 export default function NewPaymentPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("+225 ");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState<number | "">("");
+  const [paymentMethod, setPaymentMethod] = useState("carte");
 
-  const handlePay = () => {
+  const validateForm = () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return "Le nom complet est obligatoire.";
+    if (trimmedName.length < 2) return "Le nom doit contenir au moins 2 caractères.";
+    if (trimmedName.length > 100) return "Le nom ne doit pas dépasser 100 caractères.";
+    if (!/^[a-zA-ZÀ-ÿ\s'\-]+$/.test(trimmedName)) return "Le nom contient des caractères non autorisés.";
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Veuillez entrer une adresse e-mail valide.";
+    
+    // Validation du numéro de téléphone (Côte d'Ivoire +225...)
+    const phoneDigits = phone.replace(/[^0-9]/g, "");
+    if (!phone.startsWith("+225") || phoneDigits.length < 13) {
+      return "Veuillez entrer un numéro de téléphone valide au format +225 (10 chiffres).";
+    }
+
+    if (!description.trim()) return "La description de la commande est obligatoire.";
+    if (description.trim().length > 500) return "La description ne doit pas dépasser 500 caractères.";
+    
+    if (amount === "" || Number(amount) <= 0) return "Le montant doit être supérieur à 0.";
+    
+    return null;
+  };
+
+  const handlePay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setIsProcessing(true);
-    setTimeout(() => {
+    setError(null);
+    try {
+      const { apiFetch } = await import('@/lib/api');
+      const data = await apiFetch('/payments/initialize', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerName: name,
+          customerEmail: email,
+          customerPhone: phone,
+          description: description,
+          amount: Number(amount),
+          paymentMethod: paymentMethod,
+        }),
+      });
+
+      if (data?.status && data.authorization_url) {
+        setIsSuccess(true);
+        window.location.href = data.authorization_url;
+      } else {
+        throw new Error('URL de redirection manquante');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       setIsProcessing(false);
-      setIsSuccess(true);
-      router.push('/payments/status/PF-20260923-005');
-    }, 1200);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (!val.startsWith("+225")) {
+      val = "+225 " + val.replace(/^\+225\s?/, "");
+    }
+    setPhone(val);
   };
 
   return (
@@ -44,162 +107,173 @@ export default function NewPaymentPage() {
             Préparez votre paiement avant de continuer.
           </p>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[12px] leading-[16px] tracking-[0.01em] font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-          <span>Mode Test</span>
-        </div>
       </div>
 
       {/* Main Card */}
       <div className="max-w-[760px] w-full mx-auto pb-12">
-        <div className="w-full bg-surface-container-lowest rounded-xl shadow-sm p-4 space-y-4 md:p-6 md:space-y-0">
+        <form onSubmit={handlePay} className="w-full bg-surface-container-lowest rounded-xl shadow-sm p-4 space-y-6 md:p-6 md:space-y-8">
           
-          {/* Section 1: Détails de la commande */}
-          <section className="space-y-3 md:space-y-0">
-            {/* Mobile Header for Section 1 */}
-            <div className="flex md:hidden items-center justify-between">
-              <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold">Détails de la commande</h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[12px] leading-[16px] tracking-[0.02em] font-medium bg-surface-container text-on-surface-variant">
-                Démo
-              </span>
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 text-sm text-error bg-error-container rounded-lg flex items-start gap-2">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span>{error}</span>
             </div>
+          )}
+
+          {/* Section 1: Informations client */}
+          <section className="space-y-3 md:space-y-4">
+            <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold">Informations client</h2>
             
-            {/* Desktop Header for Section 1 */}
-            <h2 className="hidden md:block font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold text-on-surface mb-4">
-              Détails de la commande
-            </h2>
-
-            {/* Mobile Details Container */}
-            <div className="md:hidden bg-surface-container-low rounded-lg p-3 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="block text-on-surface-variant font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium uppercase tracking-wider">Description</span>
-                  <span className="block text-on-surface font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-semibold truncate">{paymentData.description}</span>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="block text-on-surface-variant font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium uppercase tracking-wider">Référence</span>
-                  <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[12px] leading-[16px] tracking-[0.02em] font-medium bg-surface-container-highest text-on-surface-variant">
-                    {paymentData.reference}
-                  </span>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-outline-variant/30 flex items-center justify-between">
-                <span className="text-on-surface-variant font-body-default text-[14px] leading-[20px] tracking-[-0.005em] font-normal">Montant à régler</span>
-                <div className="text-right">
-                  <span className="text-on-surface font-headline-md text-[20px] leading-[28px] tracking-[-0.015em] font-bold tracking-tight">{paymentData.formattedAmount}</span>
-                  <span className="text-primary font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-semibold ml-1">{paymentData.currency}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Details Container */}
-            <div className="hidden md:grid bg-surface-container-low rounded-lg p-4 grid-cols-3 gap-4">
+            <div className="bg-surface-container-low rounded-lg p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Description</span>
-                <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium text-on-surface">{paymentData.description}</span>
+                <label htmlFor="name" className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] mb-1.5">
+                  Nom complet <span className="text-error">*</span>
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Votre nom complet"
+                  className="w-full bg-surface-container-highest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                />
               </div>
+
               <div className="flex flex-col">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Référence</span>
-                <span className="font-label-code text-[12px] leading-[16px] tracking-[0.02em] font-normal text-on-surface bg-surface-container-high px-2 py-0.5 rounded w-fit select-all">{paymentData.reference}</span>
+                <label htmlFor="email" className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] mb-1.5">
+                  Adresse email <span className="text-error">*</span>
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="votre.email@exemple.com"
+                  className="w-full bg-surface-container-highest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                />
               </div>
-              <div className="flex flex-col items-end text-right">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Montant à régler</span>
-                <span className="font-headline-md text-[20px] leading-[28px] tracking-[-0.015em] font-semibold text-on-surface tabular-nums">{paymentData.formattedAmount} {paymentData.currency}</span>
+
+              <div className="flex flex-col md:col-span-2">
+                <label htmlFor="phone" className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] mb-1.5">
+                  Numéro de téléphone <span className="text-error">*</span>
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="+225 0102030405"
+                  className="w-full md:max-w-md bg-surface-container-highest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                />
               </div>
             </div>
           </section>
 
-          {/* Divider */}
-          <div className="h-px bg-surface-container-highest md:bg-surface-container-high w-full md:my-6"></div>
-
-          {/* Section 2: Informations client */}
-          <section className="space-y-2.5 md:space-y-0">
-            <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold md:mb-4">Informations client</h2>
+          {/* Section 2: Détails de la commande */}
+          <section className="space-y-3 md:space-y-4">
+            <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold">Détails de la commande</h2>
             
-            {/* Mobile Client Container */}
-            <div className="md:hidden bg-surface-container-low rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] tracking-normal font-normal">Nom complet</span>
-                <span className="text-on-surface font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium">{paymentData.customer.name}</span>
+            <div className="bg-surface-container-low rounded-lg p-3 md:p-4 space-y-4">
+              <div className="flex flex-col">
+                <label htmlFor="description" className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] mb-1.5">
+                  Description de la commande <span className="text-error">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  required
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Ex: Achat de chaussures, Pointure 42..."
+                  className="w-full bg-surface-container-highest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary transition-all resize-none"
+                />
               </div>
-              <div className="h-px w-full bg-surface-container-highest/60"></div>
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] tracking-normal font-normal">Adresse email</span>
-                <span className="text-on-surface font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium truncate max-w-[200px]">{paymentData.customer.email}</span>
-              </div>
-              <div className="h-px w-full bg-surface-container-highest/60"></div>
-              <div className="flex items-center justify-between py-0.5">
-                <span className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] tracking-normal font-normal">Numéro de téléphone</span>
-                <span className="text-on-surface font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium tracking-tight">{paymentData.customer.phone}</span>
-              </div>
-            </div>
 
-            {/* Desktop Client Container */}
-            <div className="hidden md:grid bg-surface-container-low rounded-lg p-4 grid-cols-3 gap-4">
               <div className="flex flex-col">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Nom complet</span>
-                <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium text-on-surface">{paymentData.customer.name}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Adresse email</span>
-                <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium text-on-surface truncate">{paymentData.customer.email}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant uppercase tracking-wider mb-1">Numéro de téléphone</span>
-                <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium text-on-surface tabular-nums">{paymentData.customer.phone}</span>
+                <label htmlFor="amount" className="text-on-surface-variant font-body-secondary text-[13px] leading-[18px] mb-1.5">
+                  Montant à régler (FCFA) <span className="text-error">*</span>
+                </label>
+                <input
+                  id="amount"
+                  type="number"
+                  min="1"
+                  required
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : "")}
+                  placeholder="Ex: 5000"
+                  className="w-full md:max-w-xs bg-surface-container-highest text-on-surface font-headline-md text-[20px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                />
               </div>
             </div>
           </section>
-
-          {/* Divider */}
-          <div className="h-px bg-surface-container-highest md:bg-surface-container-high w-full md:my-6"></div>
 
           {/* Section 3: Moyen de paiement */}
-          <section className="space-y-2.5 md:space-y-0">
-            <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold md:mb-4">Moyen de paiement</h2>
+          <section className="space-y-3 md:space-y-4">
+            <h2 className="text-on-surface font-headline-sm text-[16px] leading-[24px] tracking-[-0.01em] font-semibold">Moyen de paiement</h2>
             
-            {/* Mobile Payment Method */}
-            <div className="md:hidden relative flex items-center justify-between p-3.5 rounded-lg bg-primary-fixed/30 ring-1 ring-primary transition-all">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary shadow-xs">
-                  <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{paymentData.paymentMethod.icon}</span>
+            <div className="bg-surface-container-low rounded-lg p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label 
+                className={`relative flex items-center justify-between p-3.5 rounded-lg border cursor-pointer transition-all ${
+                  paymentMethod === 'carte' 
+                    ? 'border-primary bg-primary-fixed/20' 
+                    : 'border-outline-variant bg-surface-container-highest hover:bg-surface-container'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-[20px] ${paymentMethod === 'carte' ? 'text-primary' : 'text-on-surface-variant'}`}>
+                    credit_card
+                  </span>
+                  <span className={`font-body-medium text-[14px] ${paymentMethod === 'carte' ? 'text-primary font-medium' : 'text-on-surface'}`}>
+                    Carte bancaire
+                  </span>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-on-surface font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-semibold">{paymentData.paymentMethod.name}</div>
-                  <div className="text-on-surface-variant font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium">{paymentData.paymentMethod.description}</div>
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary">
-                <span className="material-symbols-outlined text-[13px] font-bold">check</span>
-              </div>
-            </div>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="carte" 
+                  checked={paymentMethod === 'carte'}
+                  onChange={() => setPaymentMethod('carte')}
+                  className="w-4 h-4 text-primary focus:ring-primary border-outline-variant"
+                />
+              </label>
 
-            {/* Desktop Payment Method */}
-            <div className="hidden md:flex relative bg-primary-fixed/20 rounded-lg p-4 items-center justify-between shadow-sm cursor-pointer select-none">
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary-container shadow-sm">
-                  <span className="material-symbols-outlined text-[22px]">{paymentData.paymentMethod.icon}</span>
+              <label 
+                className={`relative flex items-center justify-between p-3.5 rounded-lg border cursor-pointer transition-all ${
+                  paymentMethod === 'mobile_money' 
+                    ? 'border-primary bg-primary-fixed/20' 
+                    : 'border-outline-variant bg-surface-container-highest hover:bg-surface-container'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-[20px] ${paymentMethod === 'mobile_money' ? 'text-primary' : 'text-on-surface-variant'}`}>
+                    account_balance
+                  </span>
+                  <span className={`font-body-medium text-[14px] ${paymentMethod === 'mobile_money' ? 'text-primary font-medium' : 'text-on-surface'}`}>
+                    Mobile Money
+                  </span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium text-on-surface">{paymentData.paymentMethod.name}</span>
-                  <span className="font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-on-surface-variant">{paymentData.paymentMethod.description}</span>
-                </div>
-              </div>
-              {/* Active Radio Selection Indicator */}
-              <div className="w-5 h-5 rounded-full bg-primary-container flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-surface-container-lowest"></div>
-              </div>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="mobile_money" 
+                  checked={paymentMethod === 'mobile_money'}
+                  onChange={() => setPaymentMethod('mobile_money')}
+                  className="w-4 h-4 text-primary focus:ring-primary border-outline-variant"
+                />
+              </label>
             </div>
           </section>
 
           {/* Payment Action */}
-          <div className="pt-2 md:pt-0 md:mt-8 flex flex-col items-center gap-3 space-y-2.5 md:space-y-0">
-            {/* Mobile Button */}
+          <div className="pt-2 flex flex-col items-center gap-3">
             <button
-              type="button"
-              onClick={handlePay}
+              type="submit"
               disabled={isProcessing || isSuccess}
-              className={`md:hidden w-full h-11 text-on-primary font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all ${
+              className={`w-full md:w-auto md:min-w-[280px] h-12 text-on-primary font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-semibold rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all ${
                 isProcessing ? 'bg-primary opacity-90 cursor-not-allowed' :
                 isSuccess ? 'bg-secondary hover:bg-secondary' :
                 'bg-primary hover:bg-primary-container active:scale-[0.99]'
@@ -218,50 +292,17 @@ export default function NewPaymentPage() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">lock</span>
-                  <span>Payer maintenant</span>
-                  <span className="font-normal opacity-90">•</span>
-                  <span>{paymentData.formattedAmount} {paymentData.currency}</span>
+                  <span>Payer {amount ? `${Number(amount).toLocaleString('fr-FR')} FCFA` : 'maintenant'}</span>
                 </>
               )}
             </button>
 
-            {/* Desktop Button */}
-            <button
-              type="button"
-              onClick={handlePay}
-              disabled={isProcessing || isSuccess}
-              className={`hidden md:flex w-full h-11 text-on-primary font-body-medium text-[14px] leading-[20px] tracking-[-0.005em] font-medium rounded-lg transition-colors items-center justify-center gap-2 shadow-sm focus:outline-none ${
-                isProcessing ? 'bg-primary-container cursor-not-allowed' :
-                isSuccess ? 'bg-secondary hover:bg-secondary' :
-                'bg-primary-container hover:bg-primary'
-              }`}
-            >
-              {isProcessing ? (
-                <>
-                  <span>Traitement en cours...</span>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                </>
-              ) : isSuccess ? (
-                <span>Paiement réussi</span>
-              ) : (
-                <span>Payer maintenant</span>
-              )}
-            </button>
-
-            {/* Mobile Secure Text */}
-            <div className="md:hidden flex items-center justify-center gap-1.5 text-on-surface-variant font-caption text-[11px] leading-[14px] tracking-[0.02em] font-medium text-center">
-              <span className="material-symbols-outlined text-[14px]">verified_user</span>
+            <div className="flex items-center gap-1.5 text-on-surface-variant font-caption text-[12px] leading-[16px] font-medium text-center">
+              <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
               <span>Paiement sécurisé et chiffré SSL 256-bit</span>
             </div>
-
-            {/* Desktop Secure Text */}
-            <div className="hidden md:inline-flex items-center gap-1.5 text-on-surface-variant font-body-secondary text-[13px] leading-[18px] font-normal">
-              <span className="material-symbols-outlined text-[15px] text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
-              <span>Paiement sécurisé et chiffré</span>
-            </div>
           </div>
-
-        </div>
+        </form>
       </div>
     </div>
   );
