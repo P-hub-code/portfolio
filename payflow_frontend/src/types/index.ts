@@ -24,7 +24,7 @@ export interface WebhookEvent {
 
 export interface PaymentInitData {
   customerName: string;
-  customerEmail: string;
+  email: string;
   customerPhone: string;
   description: string;
   amount: number;

@@ -54,7 +54,7 @@ export default function NewPaymentPage() {
         method: 'POST',
         body: JSON.stringify({
           customerName: name,
-          customerEmail: email,
+          email: email,
           customerPhone: phone,
           description: description,
           amount: Number(amount),
