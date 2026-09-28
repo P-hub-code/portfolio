@@ -7,11 +7,11 @@ interface StatCardProps {
 
 export const StatCard: React.FC<StatCardProps> = ({ label, value }) => {
   return (
-    <div className="bg-white rounded-xl p-5 h-[100px] flex flex-col justify-between shadow-sm">
-      <span className="text-[12px] font-medium text-[#797588] leading-[16px] tracking-[0.01em]">
+    <div className="bg-surface-container-lowest rounded-xl p-5 min-h-[100px] flex flex-col justify-between shadow-sm border border-outline-variant/30">
+      <span className="font-label-default text-label-default text-outline font-medium">
         {label}
       </span>
-      <span className="text-[24px] font-semibold text-[#141b2b] tracking-[-0.02em] leading-[32px]">
+      <span className="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight tabular-nums">
         {value}
       </span>
     </div>

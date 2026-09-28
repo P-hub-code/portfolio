@@ -1,37 +1,43 @@
 import React from 'react';
 
-export type TransactionStatus = 'Confirmé' | 'En attente' | 'Échec' | string;
+export type TransactionStatus = 'Confirmé' | 'En attente' | 'Échec' | 'SUCCESS' | 'PENDING' | 'FAILED' | string;
 
 interface StatusBadgeProps {
   status: TransactionStatus;
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  let bgClass = '';
-  let textClass = '';
+  const normalized = (status || "").toLowerCase();
 
-  switch (status) {
-    case 'Confirmé':
-      bgClass = 'bg-[#DCFCE7]'; // Status success bg from design
-      textClass = 'text-[#15803D]'; // Status success text from design
-      break;
-    case 'En attente':
-      bgClass = 'bg-[#FEF3C7]';
-      textClass = 'text-[#B45309]';
-      break;
-    case 'Échec':
-      bgClass = 'bg-[#FEE2E2]';
-      textClass = 'text-[#B91C1C]';
-      break;
-    default:
-      bgClass = 'bg-[#F3F4F6]';
-      textClass = 'text-[#374151]';
+  if (normalized === 'confirmé' || normalized === 'success') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-caption font-caption bg-secondary-fixed text-on-secondary-fixed-variant font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+        <span>Confirmé</span>
+      </span>
+    );
+  }
+
+  if (normalized === 'en attente' || normalized === 'pending') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-caption font-caption bg-tertiary-fixed text-tertiary font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+        <span>En attente</span>
+      </span>
+    );
+  }
+
+  if (normalized === 'échec' || normalized === 'echec' || normalized === 'failed') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-caption font-caption bg-error-container text-on-error-container font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
+        <span>Échec</span>
+      </span>
+    );
   }
 
   return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${bgClass} ${textClass}`}
-    >
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-caption bg-surface-container text-on-surface-variant font-medium">
       {status}
     </span>
   );
