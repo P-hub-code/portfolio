@@ -16,16 +16,24 @@ export class InitializePaymentDto {
     typeof value === 'string' ? value.trim() : value,
   )
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Le nom complet est obligatoire.' })
   @MinLength(2, { message: 'Customer name is too short' })
   @MaxLength(100, { message: 'Customer name is too long' })
-  @Matches(/^[a-zA-ZÀ-ÿ\s\-']+$/, { message: 'Invalid customer name format' })
+  @Matches(/^[\p{L}\p{M}\s\-'’]+$/u, {
+    message: 'Le nom contient des caractères non autorisés.',
+  })
   customerName: string;
 
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsEmail({}, { message: 'Invalid email address' })
   @IsNotEmpty()
   email: string;
 
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsString()
   @IsOptional()
   customerPhone?: string;
