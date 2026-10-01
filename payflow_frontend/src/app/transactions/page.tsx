@@ -66,148 +66,198 @@ export default function TransactionsPage() {
   };
 
   const getMethodDisplay = (method: string) => {
-    if (method.includes("card") || method.includes("carte")) {
-      return (
-        <span className="inline-flex items-center gap-1.5 font-body-secondary text-body-secondary text-on-surface-variant">
-          <span className="material-symbols-outlined text-[16px] text-on-surface-variant">credit_card</span>
-          <span>Carte</span>
-        </span>
-      );
-    }
+    const isCard = method.includes("card") || method.includes("carte");
     return (
-      <span className="inline-flex items-center gap-1.5 font-body-secondary text-body-secondary text-on-surface-variant">
-        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">smartphone</span>
-        <span>Mobile</span>
+      <span className="inline-flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+          {isCard ? 'credit_card' : 'smartphone'}
+        </span>
+        <span>{isCard ? 'Carte' : 'Mobile'}</span>
       </span>
     );
   };
 
   return (
-    <div className="flex flex-col w-full max-w-[1376px] mx-auto px-4 md:px-margin py-4 md:py-margin flex flex-col gap-space-lg">
-      {/* Header and Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
-        <div className="flex flex-col gap-space-xs">
-          <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight font-semibold">Transactions</h1>
-          <p className="font-body-default text-body-default text-on-surface-variant">Historique des paiements enregistrés.</p>
+    <div className="flex flex-col w-full max-w-[1200px] mx-auto gap-6 animate-fade-in">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[22px] md:text-[24px] font-bold text-on-surface tracking-tight">Transactions</h1>
+          <p className="text-[13.5px] text-on-surface-variant">Historique complet de vos paiements.</p>
         </div>
-        <div className="relative w-full sm:w-[260px]">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
-            <span className="material-symbols-outlined text-[18px]">search</span>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-[280px]">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <span className="material-symbols-outlined text-on-surface-variant/60" style={{ fontSize: '17px' }}>search</span>
           </div>
           <input
-            className="w-full h-[38px] pl-9 pr-3.5 bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-default text-body-secondary rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 border border-outline-variant/30 transition-all"
+            className="w-full h-10 pl-9 pr-4 bg-white text-on-surface text-[13px] rounded-xl transition-all outline-none focus:ring-2 focus:ring-primary/20"
+            style={{
+              border: '1.5px solid rgba(201,196,217,0.5)',
+              boxShadow: '0 1px 2px rgba(20,27,43,0.04)',
+            }}
             id="transaction-search"
-            placeholder="Rechercher une transaction..."
+            placeholder="Rechercher..."
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface"
+              onClick={() => setSearchQuery("")}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Loading state */}
+      {/* ── Loading ── */}
       {loading && (
-        <div className="flex flex-col items-center justify-center p-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 text-on-surface-variant">
-          <span className="material-symbols-outlined text-[32px] animate-spin text-primary mb-2">progress_activity</span>
-          <p className="font-body-medium text-body-medium">Chargement des transactions...</p>
+        <div className="flex flex-col gap-2">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton h-[60px] w-full" style={{ animationDelay: `${i * 100}ms` }} />
+          ))}
         </div>
       )}
 
-      {/* Error state */}
+      {/* ── Error ── */}
       {error && !loading && (
-        <div className="p-8 text-center text-error bg-error-container/40 rounded-xl border border-error/20">
-          <span className="material-symbols-outlined text-[28px] mb-2">error</span>
-          <p className="font-body-medium">Erreur lors du chargement des transactions.</p>
+        <div
+          className="p-8 flex flex-col items-center gap-3 rounded-2xl text-center"
+          style={{
+            background: 'rgba(255,218,214,0.3)',
+            border: '1px solid rgba(186,26,26,0.15)',
+          }}
+        >
+          <div className="w-10 h-10 rounded-full bg-error-container/60 flex items-center justify-center">
+            <span className="material-symbols-outlined text-error" style={{ fontSize: '20px' }}>error</span>
+          </div>
+          <p className="text-[13.5px] font-medium text-error">Erreur lors du chargement des transactions.</p>
         </div>
       )}
 
-      {/* Data display */}
+      {/* ── Data ── */}
       {!loading && !error && (
         <>
-          {/* Mobile View: Cards Feed */}
-          <div className="flex flex-col gap-space-sm w-full md:hidden">
+          {/* Summary bar */}
+          {filteredTransactions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] text-on-surface-variant">
+                {filteredTransactions.length} transaction{filteredTransactions.length > 1 ? 's' : ''}
+                {searchQuery && ` · filtrées par "${searchQuery}"`}
+              </span>
+            </div>
+          )}
+
+          {/* Mobile View */}
+          <div className="flex flex-col gap-2 md:hidden">
             {filteredTransactions.map((tx) => (
               <div
                 key={tx.id}
                 onClick={() => router.push(`/transactions/${tx.id}`)}
-                className="flex flex-col p-4 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 transition-all active:scale-[0.99] cursor-pointer"
+                className="flex items-center justify-between p-4 bg-white rounded-2xl cursor-pointer transition-all active:scale-[0.99] hover:shadow-sm"
+                style={{
+                  boxShadow: '0 1px 3px rgba(20,27,43,0.05)',
+                  border: '1px solid rgba(201,196,217,0.3)',
+                }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-label-code text-label-code font-mono text-on-surface font-semibold select-all">
-                    {tx.reference}
-                  </span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(233,237,255,0.8)' }}
+                  >
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '17px', fontVariationSettings: "'FILL' 0" }}>receipt</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-[12.5px] font-mono font-semibold text-on-surface truncate">{tx.reference}</span>
+                    <span className="text-[11.5px] text-on-surface-variant truncate">{tx.orderName} · {tx.date}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5 flex-shrink-0 ml-3">
+                  <span className="text-[13px] font-bold text-on-surface tabular-nums">{formatAmount(tx.amount, tx.currency)}</span>
                   <StatusBadge status={tx.status} />
-                </div>
-                <div className="flex items-center justify-between text-on-surface-variant mb-3">
-                  <span className="font-body-default text-body-default text-on-surface truncate max-w-[160px]">{tx.orderName}</span>
-                  {getMethodDisplay(tx.method)}
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-surface-container-high/40">
-                  <span className="font-headline-sm text-headline-sm text-on-surface font-semibold tabular-nums">
-                    {formatAmount(tx.amount, tx.currency)}
-                  </span>
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">{tx.date}</span>
                 </div>
               </div>
             ))}
 
             {filteredTransactions.length === 0 && (
-              <div className="flex flex-col items-center justify-center p-8 text-center bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 my-2">
-                <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mb-2">
-                  <span className="material-symbols-outlined text-[20px]">search_off</span>
+              <div
+                className="flex flex-col items-center justify-center p-12 text-center bg-white rounded-2xl"
+                style={{ border: '1px solid rgba(201,196,217,0.3)' }}
+              >
+                <div className="w-10 h-10 rounded-2xl bg-surface-container flex items-center justify-center mb-3">
+                  <span className="material-symbols-outlined text-on-surface-variant/50" style={{ fontSize: '20px' }}>search_off</span>
                 </div>
-                <p className="font-body-medium text-body-medium text-on-surface font-medium">Aucune transaction trouvée</p>
-                <p className="font-caption text-caption text-on-surface-variant mt-0.5">Vérifiez la référence ou le nom du client.</p>
+                <p className="text-[14px] font-semibold text-on-surface">Aucune transaction trouvée</p>
+                <p className="text-[12.5px] text-on-surface-variant mt-1">Vérifiez la référence ou le nom.</p>
               </div>
             )}
           </div>
 
-          {/* Desktop View: Table */}
-          <div className="hidden md:block w-full bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+          {/* Desktop View */}
+          <div
+            className="hidden md:block w-full bg-white rounded-2xl overflow-hidden"
+            style={{
+              boxShadow: '0 1px 3px rgba(20,27,43,0.06), 0 1px 2px rgba(20,27,43,0.04)',
+              border: '1px solid rgba(201,196,217,0.3)',
+            }}
+          >
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse" id="transactions-table">
+              <table className="w-full text-left" id="transactions-table">
                 <thead>
-                  <tr className="h-9 bg-surface-container-low text-on-surface-variant font-label-default text-caption uppercase tracking-wider border-b border-surface-container-high/40">
-                    <th className="py-2.5 px-6 font-medium" scope="col">Référence</th>
-                    <th className="py-2.5 px-6 font-medium" scope="col">Client</th>
-                    <th className="py-2.5 px-6 font-medium text-right" scope="col">Montant</th>
-                    <th className="py-2.5 px-6 font-medium" scope="col">Moyen</th>
-                    <th className="py-2.5 px-6 font-medium" scope="col">Statut</th>
-                    <th className="py-2.5 px-6 font-medium text-right" scope="col">Date</th>
+                  <tr style={{ background: 'rgba(244,245,251,0.8)', borderBottom: '1px solid rgba(201,196,217,0.25)' }}>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Référence</th>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Client</th>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60 text-right" scope="col">Montant</th>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Moyen</th>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Statut</th>
+                    <th className="py-3.5 px-5 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60 text-right" scope="col">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high/40 font-body-default text-body-default">
+                <tbody>
                   {filteredTransactions.map((tx) => (
                     <tr
                       key={tx.id}
                       onClick={() => router.push(`/transactions/${tx.id}`)}
-                      className="h-14 hover:bg-surface-container-low transition-colors cursor-pointer"
+                      className="group cursor-pointer transition-colors hover:bg-surface"
+                      style={{ borderBottom: '1px solid rgba(233,237,255,0.8)' }}
                     >
-                      <td className="py-3.5 px-6 font-body-medium text-body-medium text-on-surface whitespace-nowrap font-mono select-all">
-                        {tx.reference}
+                      <td className="py-4 px-5">
+                        <span className="text-[12.5px] font-mono font-semibold text-on-surface group-hover:text-primary transition-colors">
+                          {tx.reference}
+                        </span>
                       </td>
-                      <td className="py-3.5 px-6 font-body-secondary text-body-secondary text-on-surface-variant whitespace-nowrap">
-                        {tx.orderName}
+                      <td className="py-4 px-5">
+                        <span className="text-[13px] text-on-surface-variant">{tx.orderName}</span>
                       </td>
-                      <td className="py-3.5 px-6 font-body-medium text-body-medium text-on-surface text-right tabular-nums whitespace-nowrap font-semibold">
-                        {formatAmount(tx.amount, tx.currency)}
+                      <td className="py-4 px-5 text-right">
+                        <span className="text-[13.5px] font-bold text-on-surface tabular-nums">
+                          {formatAmount(tx.amount, tx.currency)}
+                        </span>
                       </td>
-                      <td className="py-3.5 px-6 font-body-secondary text-body-secondary text-on-surface-variant whitespace-nowrap">
-                        {getMethodDisplay(tx.method)}
-                      </td>
-                      <td className="py-3.5 px-6 whitespace-nowrap">
+                      <td className="py-4 px-5">{getMethodDisplay(tx.method)}</td>
+                      <td className="py-4 px-5">
                         <StatusBadge status={tx.status} />
                       </td>
-                      <td className="py-3.5 px-6 font-body-secondary text-body-secondary text-on-surface-variant text-right whitespace-nowrap">
-                        {tx.date}
+                      <td className="py-4 px-5 text-right">
+                        <span className="text-[12px] text-on-surface-variant">{tx.date}</span>
                       </td>
                     </tr>
                   ))}
                   {filteredTransactions.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 px-6 text-center text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[32px] opacity-40 mb-1">search_off</span>
-                        <p className="font-body-medium text-body-medium">Aucune transaction trouvée</p>
+                      <td colSpan={6} className="py-16 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-surface-container flex items-center justify-center">
+                            <span className="material-symbols-outlined text-on-surface-variant/50" style={{ fontSize: '20px' }}>search_off</span>
+                          </div>
+                          <p className="text-[13.5px] font-semibold text-on-surface">Aucune transaction trouvée</p>
+                          <p className="text-[12.5px] text-on-surface-variant">Vérifiez la référence ou le nom du client.</p>
+                        </div>
                       </td>
                     </tr>
                   )}

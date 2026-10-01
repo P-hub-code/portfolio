@@ -29,6 +29,19 @@ interface TransactionDetail {
   description?: string;
 }
 
+function InfoField({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60">
+        {label}
+      </span>
+      <div className={`text-[13.5px] font-medium text-on-surface ${mono ? 'font-mono' : ''}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default function TransactionDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -55,27 +68,35 @@ export default function TransactionDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-on-surface-variant">
-        <span className="material-symbols-outlined text-[32px] animate-spin text-primary mb-2">progress_activity</span>
-        <p className="font-body-medium text-body-medium">Chargement du détail de la transaction...</p>
+      <div className="flex flex-col w-full max-w-3xl mx-auto gap-4">
+        <div className="skeleton h-8 w-48" />
+        <div className="skeleton h-[220px] w-full" />
+        <div className="skeleton h-[160px] w-full" />
       </div>
     );
   }
 
   if (error || !tx) {
     return (
-      <div className="p-8 max-w-lg mx-auto flex flex-col items-center justify-center text-center bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 mt-8">
-        <div className="w-12 h-12 rounded-full bg-error-container/60 text-error flex items-center justify-center mb-3">
-          <span className="material-symbols-outlined text-[24px]">error</span>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center"
+          style={{ background: 'rgba(255,218,214,0.4)' }}
+        >
+          <span className="material-symbols-outlined text-error" style={{ fontSize: '28px' }}>error</span>
         </div>
-        <h2 className="font-headline-md text-headline-md text-on-surface font-semibold mb-2">Transaction introuvable</h2>
-        <p className="font-body-default text-body-default text-on-surface-variant mb-6">
-          Impossible de récupérer les informations de cette transaction.
-        </p>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <h2 className="text-[16px] font-bold text-on-surface">Transaction introuvable</h2>
+          <p className="text-[13px] text-on-surface-variant max-w-[340px]">
+            Impossible de récupérer les informations de cette transaction.
+          </p>
+        </div>
         <button
           onClick={() => router.push("/transactions")}
-          className="px-4 py-2 bg-primary hover:bg-primary-container text-on-primary font-body-medium text-body-medium rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-white text-[13.5px] font-semibold transition-all hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
         >
+          <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>arrow_back</span>
           Retour aux transactions
         </button>
       </div>
@@ -94,145 +115,141 @@ export default function TransactionDetailPage() {
 
   const channelLabel = () => {
     const ch = (tx.channel || "").toLowerCase();
-    if (ch.includes("card") || ch.includes("carte")) return "Carte";
+    if (ch.includes("card") || ch.includes("carte")) return "Carte bancaire";
     if (ch.includes("mobile") || ch.includes("money")) return "Mobile Money";
     return tx.channel || "Non spécifié";
   };
 
   const formattedDate = new Date(tx.createdAt).toLocaleDateString("fr-FR", {
     day: "numeric",
-    month: "short",
+    month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
 
+  const statusConfig = {
+    success: { label: 'Confirmé', color: '#005321', bg: 'rgba(107,255,143,0.12)', border: 'rgba(0,110,47,0.15)', dot: '#006e2f' },
+    pending: { label: 'En attente', color: '#653e00', bg: 'rgba(255,221,184,0.3)', border: 'rgba(121,75,0,0.15)', dot: '#794b00' },
+    failed: { label: 'Échec', color: '#93000a', bg: 'rgba(255,218,214,0.35)', border: 'rgba(186,26,26,0.15)', dot: '#ba1a1a' },
+  };
+  const sc = isSuccess ? statusConfig.success : isPending ? statusConfig.pending : statusConfig.failed;
+
   return (
-    <div className="flex flex-col w-full">
-      <div className="w-full max-w-4xl mx-auto flex flex-col gap-space-lg">
-        {/* Navigation & Header */}
-        <div className="flex flex-col gap-space-sm">
-          <div>
-            <Link
-              href="/transactions"
-              className="inline-flex items-center gap-space-xs font-body-secondary text-body-secondary text-on-surface-variant hover:text-primary transition-colors group"
+    <div className="flex flex-col w-full max-w-3xl mx-auto gap-6 animate-fade-in">
+
+      {/* ── Back + Status ── */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/transactions"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-on-surface-variant hover:text-primary transition-colors group"
+        >
+          <span className="material-symbols-outlined transition-transform group-hover:-translate-x-0.5" style={{ fontSize: '16px' }}>arrow_back</span>
+          Transactions
+        </Link>
+        <span
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold"
+          style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: sc.dot }} />
+          {sc.label}
+        </span>
+      </div>
+
+      {/* ── Main Card: Amount + Key Info ── */}
+      <div
+        className="bg-white rounded-2xl p-6 md:p-8 flex flex-col gap-6"
+        style={{
+          boxShadow: '0 1px 3px rgba(20,27,43,0.07), 0 1px 2px rgba(20,27,43,0.05)',
+          border: '1px solid rgba(201,196,217,0.3)',
+        }}
+      >
+        {/* Amount hero */}
+        <div
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6"
+          style={{ borderBottom: '1px solid rgba(233,237,255,0.8)' }}
+        >
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant/60">Montant total</span>
+            <div className="text-[28px] md:text-[32px] font-bold text-on-surface tabular-nums tracking-tight">
+              {Number(tx.amount).toLocaleString("fr-FR")}
+              <span className="text-[16px] font-semibold text-on-surface-variant ml-2">{tx.currency}</span>
+            </div>
+          </div>
+          <div
+            className="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-2 rounded-xl"
+            style={{ background: 'rgba(233,237,255,0.7)', border: '1px solid rgba(201,196,217,0.3)' }}
+          >
+            <span className="text-[11px] font-semibold text-on-surface-variant/60 uppercase tracking-wider">REF</span>
+            <span className="text-[12.5px] font-mono font-semibold text-on-surface select-all">{tx.internalRef}</span>
+          </div>
+        </div>
+
+        {/* Info grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+          <InfoField label="Référence interne" value={tx.internalRef} mono />
+          <InfoField
+            label="Statut"
+            value={
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: sc.dot }} />
+                {statusLabel}
+              </span>
+            }
+          />
+          <InfoField
+            label="Moyen de paiement"
+            value={
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: '16px' }}>credit_card</span>
+                {channelLabel()}
+              </span>
+            }
+          />
+          <InfoField label="Date et heure" value={formattedDate} />
+          <InfoField label="Commande" value={<span className="truncate block max-w-[180px]" title={orderDescription}>{orderDescription}</span>} />
+          <InfoField
+            label="Client"
+            value={
+              <div className="flex flex-col gap-0.5">
+                <span>{customerName}</span>
+                {customerEmail && <span className="text-[12px] font-normal text-on-surface-variant">{customerEmail}</span>}
+                {customerPhone && <span className="text-[12px] font-normal text-on-surface-variant">{customerPhone}</span>}
+              </div>
+            }
+          />
+        </div>
+      </div>
+
+      {/* ── Technical Info ── */}
+      <div
+        className="bg-white rounded-2xl p-6 flex flex-col gap-5"
+        style={{
+          boxShadow: '0 1px 3px rgba(20,27,43,0.07), 0 1px 2px rgba(20,27,43,0.05)',
+          border: '1px solid rgba(201,196,217,0.3)',
+        }}
+      >
+        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(233,237,255,0.8)', paddingBottom: '12px' }}>
+          <h2 className="text-[13px] font-bold text-on-surface">Informations techniques</h2>
+          <span className="text-[11px] font-mono text-on-surface-variant/60">Payload metadata</span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Réf. interne', value: tx.internalRef },
+            { label: 'Réf. paiement', value: tx.paystackRef || '—' },
+            { label: 'Canal', value: tx.channel || '—' },
+            { label: 'Devise', value: tx.currency },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-1.5 p-3.5 rounded-xl"
+              style={{ background: 'rgba(244,245,251,0.8)', border: '1px solid rgba(201,196,217,0.2)' }}
             >
-              <span className="material-symbols-outlined text-[16px] transition-transform group-hover:-translate-x-0.5">arrow_back</span>
-              <span>Retour aux transactions</span>
-            </Link>
-          </div>
-          <div className="flex items-center justify-between gap-space-md pt-space-xs">
-            <h1 className="font-headline-lg text-headline-lg text-on-surface font-semibold">Détail de la transaction</h1>
-            {isSuccess && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary">
-                <span className="h-2 w-2 rounded-full bg-secondary"></span>
-                <span className="font-body-secondary text-body-secondary font-medium text-secondary">{statusLabel}</span>
-              </div>
-            )}
-            {isPending && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant">
-                <span className="h-2 w-2 rounded-full bg-tertiary"></span>
-                <span className="font-body-secondary text-body-secondary font-medium">{statusLabel}</span>
-              </div>
-            )}
-            {!isSuccess && !isPending && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container">
-                <span className="h-2 w-2 rounded-full bg-error"></span>
-                <span className="font-body-secondary text-body-secondary font-medium">{statusLabel}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Carte Principale */}
-        <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 p-6 sm:p-8 flex flex-col gap-space-lg">
-          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-space-sm pb-space-md border-b border-surface-container-high/60">
-            <div className="flex flex-col gap-1">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider font-medium">Montant total</span>
-              <div className="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">
-                {Number(tx.amount).toLocaleString("fr-FR")} {tx.currency}
-              </div>
+              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-on-surface-variant/60">{label}</span>
+              <span className="text-[12.5px] font-mono font-semibold text-on-surface truncate select-all">{value}</span>
             </div>
-            <div className="flex items-center gap-space-xs font-label-code text-label-code text-on-surface-variant bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-outline-variant/30">
-              <span className="text-on-surface-variant/70">REF:</span>
-              <span className="text-on-surface font-medium select-all font-mono">{tx.internalRef}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 pt-2">
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Référence</span>
-              <span className="font-body-medium text-body-medium text-on-surface font-mono select-all truncate">{tx.internalRef}</span>
-            </div>
-
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Statut</span>
-              <div className="flex items-center gap-1.5">
-                <span className={`h-2 w-2 rounded-full ${isSuccess ? 'bg-secondary' : isPending ? 'bg-tertiary' : 'bg-error'}`}></span>
-                <span className="font-body-medium text-body-medium text-on-surface font-medium">{statusLabel}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Moyen de paiement</span>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant">credit_card</span>
-                <span className="font-body-medium text-body-medium text-on-surface font-medium">{channelLabel()}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Date</span>
-              <span className="font-body-medium text-body-medium text-on-surface font-medium">{formattedDate}</span>
-            </div>
-
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Commande</span>
-              <span className="font-body-medium text-body-medium text-on-surface font-medium truncate" title={orderDescription}>{orderDescription}</span>
-            </div>
-
-            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wider">Client</span>
-              <div className="flex flex-col">
-                <span className="font-body-medium text-body-medium text-on-surface font-medium truncate">{customerName}</span>
-                {customerEmail && (
-                  <span className="font-caption text-caption text-on-surface-variant truncate">{customerEmail}</span>
-                )}
-                {customerPhone && (
-                  <span className="font-caption text-caption text-on-surface-variant">{customerPhone}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Section Informations Techniques */}
-        <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 p-6 flex flex-col gap-space-md">
-          <div className="flex items-center justify-between pb-2 border-b border-surface-container-high/60">
-            <h2 className="font-label-default text-label-default text-on-surface-variant uppercase tracking-wider font-semibold">Informations techniques</h2>
-            <span className="font-caption text-caption text-on-surface-variant font-mono">Payload metadata</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex flex-col gap-1 bg-surface-container-low p-3 rounded-lg border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wide">Référence interne</span>
-              <span className="font-label-code text-label-code text-on-surface font-mono select-all truncate">{tx.internalRef}</span>
-            </div>
-
-            <div className="flex flex-col gap-1 bg-surface-container-low p-3 rounded-lg border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wide">Référence paiement</span>
-              <span className="font-label-code text-label-code text-on-surface font-mono select-all truncate">{tx.paystackRef || "Non disponible"}</span>
-            </div>
-
-            <div className="flex flex-col gap-1 bg-surface-container-low p-3 rounded-lg border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wide">Canal</span>
-              <span className="font-label-code text-label-code text-on-surface font-mono truncate">{tx.channel || "Non spécifié"}</span>
-            </div>
-
-            <div className="flex flex-col gap-1 bg-surface-container-low p-3 rounded-lg border border-outline-variant/20">
-              <span className="font-caption text-caption text-on-surface-variant uppercase tracking-wide">Devise</span>
-              <span className="font-label-code text-label-code text-on-surface font-mono font-medium">{tx.currency}</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

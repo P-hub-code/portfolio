@@ -27,10 +27,10 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
           const apiStatus = (tx.status || "").toLowerCase();
           if (apiStatus === 'success') {
             setStatus('success');
-            return true; // Stop polling
+            return true;
           } else if (apiStatus === 'failed') {
             setStatus('failed');
-            return true; // Stop polling
+            return true;
           } else {
             setStatus('pending');
           }
@@ -47,7 +47,7 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
   useEffect(() => {
     let isSubscribed = true;
     let attempts = 0;
-    const maxAttempts = 24; // 24 * 2.5s = 60 seconds of auto-polling
+    const maxAttempts = 24;
 
     const runPolling = async () => {
       const done = await checkStatus();
@@ -62,9 +62,6 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
-          }
-          if (!finished && attempts >= maxAttempts && isSubscribed) {
-            // Keep pending or show check button
           }
         }
       }, 2500);
@@ -82,125 +79,180 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
 
   const displayAmount = transaction
     ? `${Number(transaction.amount).toLocaleString('fr-FR')} ${transaction.currency || 'FCFA'}`
-    : "---";
+    : "—";
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] py-space-lg w-full">
-      {/* Main Payment Status Card */}
-      <div className="w-full max-w-[520px] bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 p-6 sm:p-8 flex flex-col">
-        {/* Top Meta / Flow breadcrumb indicator */}
-        <div className="flex items-center justify-between pb-6 mb-6 border-b border-outline-variant/20">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] py-8 w-full">
+      <div
+        className="w-full max-w-[480px] bg-white rounded-2xl flex flex-col overflow-hidden"
+        style={{
+          boxShadow: '0 4px 24px rgba(20,27,43,0.08), 0 1px 3px rgba(20,27,43,0.06)',
+          border: '1px solid rgba(201,196,217,0.3)',
+        }}
+      >
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-between px-5 py-3.5"
+          style={{ background: 'rgba(244,245,251,0.8)', borderBottom: '1px solid rgba(201,196,217,0.25)' }}
+        >
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary-container"></span>
-            <span className="font-label-code text-label-code text-on-surface-variant uppercase tracking-wider font-semibold">
-              Passerelle Payflow Checkout
-            </span>
+            <div
+              className="w-5 h-5 rounded-md flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
+            >
+              <span className="material-symbols-outlined text-white" style={{ fontSize: '12px', fontVariationSettings: "'FILL' 1" }}>bolt</span>
+            </div>
+            <span className="text-[12px] font-bold text-on-surface tracking-tight">Payflow Checkout</span>
           </div>
-          <div className="flex items-center gap-1 text-on-surface-variant/70 font-caption text-caption">
-            <span className="material-symbols-outlined text-[14px]">lock</span>
-            <span>Protocole TLS 256-bit</span>
+          <div className="flex items-center gap-1 text-on-surface-variant/60">
+            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>lock</span>
+            <span className="text-[11px] font-medium">SSL 256-bit</span>
           </div>
         </div>
 
-        {/* Content Area with States */}
-        <div className="flex flex-col items-center text-center">
+        <div className="p-6 sm:p-8 flex flex-col">
 
-          {/* 1. PENDING STATE */}
+          {/* ── PENDING ── */}
           {status === 'pending' && (
-            <div className="w-full flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-5">
-                <svg className="animate-spin w-6 h-6 text-primary-container" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3.5"></circle>
-                  <path className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" fill="currentColor"></path>
+            <div className="flex flex-col items-center text-center animate-fade-in">
+              {/* Spinner */}
+              <div className="relative w-16 h-16 mb-6">
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: 'rgba(84,39,230,0.08)' }}
+                />
+                <svg
+                  className="w-16 h-16 animate-spin"
+                  viewBox="0 0 64 64"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="32" cy="32" r="26" stroke="rgba(84,39,230,0.15)" strokeWidth="4" />
+                  <path
+                    d="M32 6a26 26 0 0 1 26 26"
+                    stroke="url(#grad)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#5427e6" />
+                      <stop offset="100%" stopColor="#6d4aff" />
+                    </linearGradient>
+                  </defs>
                 </svg>
               </div>
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight mb-2 font-semibold">
-                Confirmation du paiement en cours
-              </h1>
-              <p className="font-body-default text-body-default text-on-surface-variant max-w-[420px] mb-6">
-                Nous vérifions votre paiement auprès de votre banque via webhook Paystack. Cela peut prendre quelques instants.
+
+              <h1 className="text-[18px] font-bold text-on-surface mb-2">Vérification en cours</h1>
+              <p className="text-[13px] text-on-surface-variant mb-6 max-w-[340px]">
+                Nous confirmons votre paiement auprès de votre banque via Paystack.
               </p>
 
-              {/* Ledger Detail Block */}
-              <div className="w-full bg-surface rounded-lg border border-outline-variant/30 p-4 text-left mb-6">
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Référence de transaction</span>
-                  <span className="font-label-code text-label-code text-on-surface font-mono font-medium select-all">{reference}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Montant</span>
-                  <span className="font-headline-sm text-headline-sm text-on-surface font-semibold tabular-nums">{displayAmount}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Statut actuel</span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed-variant text-label-default font-label-default font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
-                    <span>En attente</span>
-                  </span>
-                </div>
+              {/* Ledger */}
+              <div
+                className="w-full rounded-2xl mb-6"
+                style={{ background: 'rgba(244,245,251,0.7)', border: '1px solid rgba(201,196,217,0.3)' }}
+              >
+                {[
+                  { label: 'Référence', value: reference, mono: true },
+                  { label: 'Montant', value: displayAmount, bold: true },
+                  { label: 'Statut', value: (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold" style={{ background: 'rgba(255,221,184,0.4)', color: '#653e00', border: '1px solid rgba(121,75,0,0.15)' }}>
+                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#794b00' }} />
+                      En attente
+                    </span>
+                  )},
+                ].map(({ label, value, mono, bold }, i, arr) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between px-4 py-3"
+                    style={{ borderBottom: i < arr.length - 1 ? '1px solid rgba(201,196,217,0.2)' : undefined }}
+                  >
+                    <span className="text-[12.5px] text-on-surface-variant">{label}</span>
+                    {typeof value === 'string' ? (
+                      <span className={`text-[12.5px] font-semibold text-on-surface ${mono ? 'font-mono' : ''} ${bold ? 'text-[14px]' : ''}`}>
+                        {value}
+                      </span>
+                    ) : value}
+                  </div>
+                ))}
               </div>
 
-              {/* Bottom Notice & Refresh */}
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 text-on-surface-variant text-body-secondary font-body-secondary">
-                  <span className="material-symbols-outlined text-[18px]">info</span>
+              <div className="flex flex-col items-center gap-2.5 w-full">
+                <div className="flex items-center gap-1.5 text-on-surface-variant/60 text-[12px]">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>info</span>
                   <span>Vérification automatique en arrière-plan...</span>
                 </div>
                 <button
                   onClick={() => checkStatus()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium hover:underline bg-surface-container rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12.5px] font-semibold transition-all hover:shadow-sm"
+                  style={{ background: 'rgba(233,237,255,0.8)', color: '#5427e6', border: '1px solid rgba(84,39,230,0.15)' }}
                 >
-                  <span className="material-symbols-outlined text-[14px]">refresh</span>
-                  <span>Vérifier le statut manuellement</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>refresh</span>
+                  Vérifier manuellement
                 </button>
               </div>
             </div>
           )}
 
-          {/* 2. SUCCESS STATE */}
+          {/* ── SUCCESS ── */}
           {status === 'success' && (
-            <div className="w-full flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-secondary-fixed/40 flex items-center justify-center mb-5 text-secondary">
-                <span className="material-symbols-outlined text-[28px] font-bold">check</span>
+            <div className="flex flex-col items-center text-center animate-fade-in">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                style={{ background: 'linear-gradient(135deg, #006e2f 0%, #00a346 100%)' }}
+              >
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               </div>
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight mb-2 font-semibold">
-                Paiement confirmé
-              </h1>
-              <p className="font-body-default text-body-default text-on-surface-variant max-w-[420px] mb-6">
-                Votre paiement a été confirmé avec succès par le serveur via webhook.
+
+              <h1 className="text-[20px] font-bold text-on-surface mb-2">Paiement confirmé ✓</h1>
+              <p className="text-[13px] text-on-surface-variant mb-6 max-w-[340px]">
+                Votre paiement a été confirmé avec succès par le serveur via webhook Paystack.
               </p>
 
-              {/* Ledger Detail Block */}
-              <div className="w-full bg-surface rounded-lg border border-outline-variant/30 p-4 text-left mb-6">
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Référence</span>
-                  <span className="font-label-code text-label-code text-on-surface font-mono font-medium select-all">{reference}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Montant débité</span>
-                  <span className="font-headline-sm text-headline-sm text-on-surface font-semibold tabular-nums">{displayAmount}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Statut</span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed-variant text-label-default font-label-default font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                    <span>Confirmé</span>
-                  </span>
-                </div>
+              {/* Ledger */}
+              <div
+                className="w-full rounded-2xl mb-6"
+                style={{ background: 'rgba(244,245,251,0.7)', border: '1px solid rgba(201,196,217,0.3)' }}
+              >
+                {[
+                  { label: 'Référence', value: reference, mono: true },
+                  { label: 'Montant débité', value: displayAmount, bold: true },
+                  { label: 'Statut', value: (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold" style={{ background: 'rgba(107,255,143,0.15)', color: '#005321', border: '1px solid rgba(0,110,47,0.15)' }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#006e2f' }} />
+                      Confirmé
+                    </span>
+                  )},
+                ].map(({ label, value, mono, bold }, i, arr) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between px-4 py-3"
+                    style={{ borderBottom: i < arr.length - 1 ? '1px solid rgba(201,196,217,0.2)' : undefined }}
+                  >
+                    <span className="text-[12.5px] text-on-surface-variant">{label}</span>
+                    {typeof value === 'string' ? (
+                      <span className={`text-[12.5px] font-semibold text-on-surface ${mono ? 'font-mono' : ''} ${bold ? 'text-[14px]' : ''}`}>
+                        {value}
+                      </span>
+                    ) : value}
+                  </div>
+                ))}
               </div>
 
-              {/* Actions */}
-              <div className="w-full flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2.5 w-full">
                 <Link
                   href={transaction?.id ? `/transactions/${transaction.id}` : "/transactions"}
-                  className="w-full h-[42px] bg-primary-container text-on-primary hover:bg-primary rounded-lg font-body-medium text-body-medium flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                  className="w-full h-11 rounded-xl text-white text-[13.5px] font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
                 >
                   <span>Voir la transaction</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>arrow_forward</span>
                 </Link>
                 <Link
                   href="/"
-                  className="w-full h-[38px] bg-surface-container-lowest hover:bg-surface-container-low text-on-surface border border-outline-variant/40 rounded-lg font-body-medium text-body-medium flex items-center justify-center transition-colors"
+                  className="w-full h-10 rounded-xl text-on-surface text-[13.5px] font-semibold flex items-center justify-center transition-all hover:bg-surface-container"
+                  style={{ background: 'rgba(244,245,251,0.8)', border: '1px solid rgba(201,196,217,0.4)' }}
                 >
                   Retour au Dashboard
                 </Link>
@@ -208,50 +260,64 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
             </div>
           )}
 
-          {/* 3. FAILED STATE */}
+          {/* ── FAILED ── */}
           {status === 'failed' && (
-            <div className="w-full flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-error-container/40 flex items-center justify-center mb-5 text-error">
-                <span className="material-symbols-outlined text-[28px] font-bold">close</span>
+            <div className="flex flex-col items-center text-center animate-fade-in">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                style={{ background: 'linear-gradient(135deg, #ba1a1a 0%, #dc2626 100%)' }}
+              >
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>cancel</span>
               </div>
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight mb-2 font-semibold">
-                Paiement non confirmé
-              </h1>
-              <p className="font-body-default text-body-default text-on-surface-variant max-w-[420px] mb-6">
-                Le paiement n'a pas pu être confirmé par l'établissement bancaire.
+
+              <h1 className="text-[20px] font-bold text-on-surface mb-2">Paiement non confirmé</h1>
+              <p className="text-[13px] text-on-surface-variant mb-6 max-w-[340px]">
+                Le paiement n&apos;a pas pu être confirmé par l&apos;établissement bancaire.
               </p>
 
-              {/* Ledger Detail Block */}
-              <div className="w-full bg-surface rounded-lg border border-outline-variant/30 p-4 text-left mb-6">
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Référence</span>
-                  <span className="font-label-code text-label-code text-on-surface font-mono font-medium select-all">{reference}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-outline-variant/20">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Montant</span>
-                  <span className="font-headline-sm text-headline-sm text-on-surface font-semibold tabular-nums">{displayAmount}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="font-body-secondary text-body-secondary text-on-surface-variant">Statut</span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-error-container text-on-error-container text-label-default font-label-default font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
-                    <span>Échec</span>
-                  </span>
-                </div>
+              {/* Ledger */}
+              <div
+                className="w-full rounded-2xl mb-6"
+                style={{ background: 'rgba(244,245,251,0.7)', border: '1px solid rgba(201,196,217,0.3)' }}
+              >
+                {[
+                  { label: 'Référence', value: reference, mono: true },
+                  { label: 'Montant', value: displayAmount, bold: true },
+                  { label: 'Statut', value: (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold" style={{ background: 'rgba(255,218,214,0.5)', color: '#93000a', border: '1px solid rgba(186,26,26,0.15)' }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#ba1a1a' }} />
+                      Échec
+                    </span>
+                  )},
+                ].map(({ label, value, mono, bold }, i, arr) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between px-4 py-3"
+                    style={{ borderBottom: i < arr.length - 1 ? '1px solid rgba(201,196,217,0.2)' : undefined }}
+                  >
+                    <span className="text-[12.5px] text-on-surface-variant">{label}</span>
+                    {typeof value === 'string' ? (
+                      <span className={`text-[12.5px] font-semibold text-on-surface ${mono ? 'font-mono' : ''} ${bold ? 'text-[14px]' : ''}`}>
+                        {value}
+                      </span>
+                    ) : value}
+                  </div>
+                ))}
               </div>
 
-              {/* Actions */}
-              <div className="w-full flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2.5 w-full">
                 <Link
                   href="/payments/new"
-                  className="w-full h-[42px] bg-primary-container text-on-primary hover:bg-primary rounded-lg font-body-medium text-body-medium flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                  className="w-full h-11 rounded-xl text-white text-[13.5px] font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">replay</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>replay</span>
                   <span>Réessayer le paiement</span>
                 </Link>
                 <Link
                   href="/"
-                  className="w-full h-[38px] bg-surface-container-lowest hover:bg-surface-container-low text-on-surface border border-outline-variant/40 rounded-lg font-body-medium text-body-medium flex items-center justify-center transition-colors"
+                  className="w-full h-10 rounded-xl text-on-surface text-[13.5px] font-semibold flex items-center justify-center transition-all hover:bg-surface-container"
+                  style={{ background: 'rgba(244,245,251,0.8)', border: '1px solid rgba(201,196,217,0.4)' }}
                 >
                   Retour au Dashboard
                 </Link>
@@ -259,45 +325,50 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ refere
             </div>
           )}
 
-          {/* 4. ERROR STATE */}
+          {/* ── ERROR ── */}
           {status === 'error' && (
-            <div className="w-full flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-tertiary-fixed/60 flex items-center justify-center mb-5 text-tertiary">
-                <span className="material-symbols-outlined text-[28px] font-bold">priority_high</span>
+            <div className="flex flex-col items-center text-center animate-fade-in">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                style={{ background: 'rgba(255,221,184,0.5)' }}
+              >
+                <span className="material-symbols-outlined text-tertiary" style={{ fontSize: '32px', fontVariationSettings: "'FILL' 1" }}>priority_high</span>
               </div>
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight mb-2 font-semibold">
-                Une erreur est survenue
-              </h1>
-              <p className="font-body-default text-body-default text-on-surface-variant max-w-[420px] mb-6">
+
+              <h1 className="text-[20px] font-bold text-on-surface mb-2">Une erreur est survenue</h1>
+              <p className="text-[13px] text-on-surface-variant mb-6 max-w-[340px]">
                 Impossible de joindre le serveur pour vérifier le statut du paiement.
               </p>
 
-              {/* Actions */}
-              <div className="w-full flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2.5 w-full">
                 <button
                   onClick={() => checkStatus()}
-                  className="w-full h-[42px] bg-primary-container text-on-primary hover:bg-primary rounded-lg font-body-medium text-body-medium flex items-center justify-center gap-2 transition-colors font-medium shadow-sm"
+                  className="w-full h-11 rounded-xl text-white text-[13.5px] font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[18px]">refresh</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>refresh</span>
                   <span>Réessayer</span>
                 </button>
                 <Link
                   href="/"
-                  className="w-full h-[38px] bg-surface-container-lowest hover:bg-surface-container-low text-on-surface border border-outline-variant/40 rounded-lg font-body-medium text-body-medium flex items-center justify-center transition-colors"
+                  className="w-full h-10 rounded-xl text-on-surface text-[13.5px] font-semibold flex items-center justify-center transition-all hover:bg-surface-container"
+                  style={{ background: 'rgba(244,245,251,0.8)', border: '1px solid rgba(201,196,217,0.4)' }}
                 >
                   Retour au Dashboard
                 </Link>
               </div>
             </div>
           )}
-
         </div>
 
-        {/* Security / Footer stamp */}
-        <div className="mt-8 pt-5 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant/70 font-caption text-caption">
-          <span>Source de vérité: Webhooks Paystack</span>
-          <span className="font-label-code text-label-code font-mono truncate max-w-[180px]">REF: {reference}</span>
+        {/* Footer */}
+        <div
+          className="flex items-center justify-between px-5 py-3"
+          style={{ borderTop: '1px solid rgba(201,196,217,0.25)', background: 'rgba(244,245,251,0.5)' }}
+        >
+          <span className="text-[11px] text-on-surface-variant/50">Source de vérité: Webhooks Paystack</span>
+          <span className="text-[10.5px] font-mono text-on-surface-variant/40 truncate max-w-[160px]">REF: {reference}</span>
         </div>
       </div>
     </div>

@@ -22,52 +22,69 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions }) 
   };
 
   return (
-    <section className="flex flex-col gap-3 w-full">
+    <section className="flex flex-col gap-4 w-full">
       <div className="flex items-center justify-between">
-        <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-          Activité récente
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-[15px] font-bold text-on-surface">Activité récente</h2>
+          {transactions.length > 0 && (
+            <span
+              className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(84,39,230,0.08)', color: '#5427e6' }}
+            >
+              {transactions.length}
+            </span>
+          )}
+        </div>
         <Link
           href="/transactions"
-          className="font-body-secondary text-body-secondary text-outline hover:text-on-surface transition-colors inline-flex items-center gap-1 group"
+          className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:text-primary-container transition-colors group"
         >
           <span>Voir tout</span>
-          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+          <span className="material-symbols-outlined transition-transform group-hover:translate-x-0.5" style={{ fontSize: '15px' }}>
+            arrow_forward
+          </span>
         </Link>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/30">
+      <div
+        className="bg-white rounded-2xl overflow-hidden"
+        style={{
+          boxShadow: '0 1px 3px rgba(20,27,43,0.06), 0 1px 2px rgba(20,27,43,0.04)',
+          border: '1px solid rgba(201,196,217,0.3)',
+        }}
+      >
         {transactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center text-outline">
-            <span className="material-symbols-outlined text-[36px] opacity-40 mb-2">inbox</span>
-            <p className="font-body-medium text-body-medium text-on-surface font-medium">Aucune activité récente</p>
-            <p className="font-caption text-caption text-on-surface-variant mt-1">Vos dernières transactions apparaîtront ici.</p>
+          <div className="flex flex-col items-center justify-center p-14 text-center">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+              style={{ background: 'rgba(233,237,255,0.8)' }}
+            >
+              <span className="material-symbols-outlined text-on-surface-variant/50" style={{ fontSize: '22px' }}>inbox</span>
+            </div>
+            <p className="text-[14px] font-semibold text-on-surface mb-1">Aucune activité récente</p>
+            <p className="text-[12.5px] text-on-surface-variant">Vos dernières transactions apparaîtront ici.</p>
           </div>
         ) : (
           <>
             {/* Mobile View */}
-            <div className="divide-y divide-surface-container-high/60 md:hidden">
-              {transactions.map((tx) => (
+            <div className="md:hidden divide-y" style={{ borderColor: 'rgba(233,237,255,0.8)' }}>
+              {transactions.map((tx, i) => (
                 <Link
                   key={tx.reference}
                   href={tx.id ? `/transactions/${tx.id}` : "/transactions"}
-                  className="block p-4 hover:bg-surface-container-low transition-colors"
+                  className="flex items-center justify-between px-4 py-3.5 hover:bg-surface transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-label-code text-label-code font-mono text-on-surface font-semibold">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <span className="text-[12.5px] font-mono font-semibold text-on-surface truncate">
                       {tx.reference}
                     </span>
-                    <StatusBadge status={tx.status} />
+                    <span className="text-[11.5px] text-on-surface-variant truncate">{tx.customer} · {tx.date}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant font-body-secondary text-body-secondary">
-                      <span className="truncate max-w-[140px]">{tx.customer}</span>
-                      <span>•</span>
-                      <span>{tx.date}</span>
-                    </div>
-                    <div className="font-headline-sm text-headline-sm font-semibold text-on-surface">
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0 ml-3">
+                    <span className="text-[13px] font-bold text-on-surface tabular-nums">
                       {formatAmount(tx.amount, tx.currency)}
-                    </div>
+                    </span>
+                    <StatusBadge status={tx.status} />
                   </div>
                 </Link>
               ))}
@@ -75,40 +92,46 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions }) 
 
             {/* Desktop View */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-surface-container-low h-9 border-b border-surface-container-high/40">
-                    <th className="px-5 font-caption text-caption text-outline uppercase tracking-wider font-medium" scope="col">RÉFÉRENCE</th>
-                    <th className="px-5 font-caption text-caption text-outline uppercase tracking-wider font-medium" scope="col">CLIENT</th>
-                    <th className="px-5 font-caption text-caption text-outline uppercase tracking-wider font-medium" scope="col">MONTANT</th>
-                    <th className="px-5 font-caption text-caption text-outline uppercase tracking-wider font-medium" scope="col">STATUT</th>
-                    <th className="px-5 font-caption text-caption text-outline uppercase tracking-wider font-medium text-right" scope="col">DATE</th>
+                  <tr style={{ background: 'rgba(244,245,251,0.8)', borderBottom: '1px solid rgba(201,196,217,0.25)' }}>
+                    <th className="px-5 py-3 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Référence</th>
+                    <th className="px-5 py-3 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Client</th>
+                    <th className="px-5 py-3 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60 text-right" scope="col">Montant</th>
+                    <th className="px-5 py-3 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60" scope="col">Statut</th>
+                    <th className="px-5 py-3 text-[10.5px] font-semibold uppercase tracking-widest text-on-surface-variant/60 text-right" scope="col">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high/40 font-body-default">
-                  {transactions.map((tx) => (
+                <tbody>
+                  {transactions.map((tx, i) => (
                     <tr
                       key={tx.reference}
-                      className="h-14 hover:bg-surface-container-low transition-colors cursor-pointer"
+                      className="group hover:bg-surface transition-colors cursor-pointer"
+                      style={{ borderBottom: '1px solid rgba(233,237,255,0.8)' }}
                     >
-                      <td className="px-5 font-label-code text-label-code text-on-surface font-mono font-medium whitespace-nowrap">
-                        <Link href={tx.id ? `/transactions/${tx.id}` : "/transactions"} className="hover:text-primary transition-colors">
+                      <td className="px-5 py-4">
+                        <Link
+                          href={tx.id ? `/transactions/${tx.id}` : "/transactions"}
+                          className="text-[12.5px] font-mono font-semibold text-on-surface hover:text-primary transition-colors"
+                        >
                           {tx.reference}
                         </Link>
                       </td>
-                      <td className="px-5 font-body-default text-body-default text-on-surface whitespace-nowrap">
+                      <td className="px-5 py-4">
                         <Link href={tx.id ? `/transactions/${tx.id}` : "/transactions"} className="block">
-                          {tx.customer}
+                          <span className="text-[13px] text-on-surface">{tx.customer}</span>
                         </Link>
                       </td>
-                      <td className="px-5 font-body-medium text-body-medium text-on-surface font-semibold tabular-nums whitespace-nowrap">
-                        {formatAmount(tx.amount, tx.currency)}
+                      <td className="px-5 py-4 text-right">
+                        <span className="text-[13.5px] font-bold text-on-surface tabular-nums">
+                          {formatAmount(tx.amount, tx.currency)}
+                        </span>
                       </td>
-                      <td className="px-5 whitespace-nowrap">
+                      <td className="px-5 py-4">
                         <StatusBadge status={tx.status} />
                       </td>
-                      <td className="px-5 font-body-secondary text-body-secondary text-outline text-right whitespace-nowrap">
-                        {tx.date}
+                      <td className="px-5 py-4 text-right">
+                        <span className="text-[12px] text-on-surface-variant">{tx.date}</span>
                       </td>
                     </tr>
                   ))}

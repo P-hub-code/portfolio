@@ -2,6 +2,41 @@
 
 import { useState } from "react";
 
+function FormField({
+  id,
+  label,
+  required = false,
+  children,
+  hint,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="flex items-center gap-1 text-[12px] font-semibold text-on-surface-variant">
+        {label}
+        {required && <span className="text-error text-[11px]">*</span>}
+      </label>
+      {children}
+      {hint && <p className="text-[11px] text-on-surface-variant/70">{hint}</p>}
+    </div>
+  );
+}
+
+const inputClass = `
+  w-full h-10 px-3.5 bg-white text-on-surface text-[13.5px] rounded-xl outline-none
+  transition-all focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40
+`.trim().replace(/\s+/g, ' ');
+
+const inputStyle = {
+  border: '1.5px solid rgba(201,196,217,0.6)',
+  boxShadow: '0 1px 2px rgba(20,27,43,0.04)',
+};
+
 export default function NewPaymentPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,7 +103,7 @@ export default function NewPaymentPage() {
         throw new Error('URL de redirection manquante dans la réponse du serveur');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'initialisation du paiement');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'initialisation du paiement");
       setIsProcessing(false);
     }
   };
@@ -81,59 +116,70 @@ export default function NewPaymentPage() {
     setPhone(val);
   };
 
+  const formattedAmount = amount ? `${Number(amount).toLocaleString('fr-FR')} FCFA` : null;
+
   return (
-    <div className="flex flex-col w-full max-w-[760px] mx-auto pb-12">
-      {/* Screen Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface font-semibold">Nouvelle commande</h1>
-          <p className="font-body-default text-body-default text-on-surface-variant mt-1">
-            Préparez votre paiement avant de continuer.
-          </p>
-        </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-label-default font-label-default font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-          <span>Mode Test</span>
-        </div>
+    <div className="flex flex-col w-full max-w-[680px] mx-auto gap-6 pb-12 animate-fade-in">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[22px] md:text-[24px] font-bold text-on-surface tracking-tight">Nouvelle commande</h1>
+        <p className="text-[13.5px] text-on-surface-variant">Renseignez les informations du client et de la commande.</p>
       </div>
 
-      {/* Main Card */}
-      <div className="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-sm border border-outline-variant/30">
-        <form onSubmit={handlePay} className="flex flex-col gap-6">
+      {/* ── Form Card ── */}
+      <form onSubmit={handlePay}>
+        <div className="flex flex-col gap-1">
 
-          {/* Error Message */}
+          {/* Error Banner */}
           {error && (
-            <div className="p-4 text-sm text-error bg-error-container rounded-lg flex items-start gap-2 border border-error/20">
-              <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">error</span>
-              <span>{error}</span>
+            <div
+              className="flex items-start gap-3 p-4 rounded-2xl mb-4 animate-fade-in"
+              style={{ background: 'rgba(255,218,214,0.4)', border: '1px solid rgba(186,26,26,0.2)' }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(186,26,26,0.1)' }}>
+                <span className="material-symbols-outlined text-error" style={{ fontSize: '17px' }}>error</span>
+              </div>
+              <div className="flex flex-col gap-0.5 pt-0.5">
+                <span className="text-[12.5px] font-semibold text-error">Erreur de validation</span>
+                <span className="text-[12.5px] text-on-error-container">{error}</span>
+              </div>
             </div>
           )}
 
-          {/* Section 1: Informations client */}
-          <div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold mb-4">
-              Informations client
-            </h2>
-            <div className="bg-surface-container-low rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 border border-outline-variant/20">
-              <div className="flex flex-col">
-                <label htmlFor="name" className="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1 font-medium">
-                  Nom complet <span className="text-error">*</span>
-                </label>
+          {/* Section 1: Client */}
+          <div
+            className="bg-white rounded-2xl p-6 flex flex-col gap-5"
+            style={{
+              boxShadow: '0 1px 3px rgba(20,27,43,0.06)',
+              border: '1px solid rgba(201,196,217,0.3)',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
+              >
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>person</span>
+              </div>
+              <h2 className="text-[14px] font-bold text-on-surface">Informations client</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField id="name" label="Nom complet" required>
                 <input
                   id="name"
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: John Doe"
-                  className="w-full bg-surface-container-lowest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  placeholder="Ex: Jean Kouassi"
+                  className={inputClass}
+                  style={inputStyle}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col">
-                <label htmlFor="email" className="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1 font-medium">
-                  Adresse email <span className="text-error">*</span>
-                </label>
+              <FormField id="email" label="Adresse email" required>
                 <input
                   id="email"
                   type="email"
@@ -141,14 +187,17 @@ export default function NewPaymentPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="client@exemple.com"
-                  className="w-full bg-surface-container-lowest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className={inputClass}
+                  style={inputStyle}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col md:col-span-2">
-                <label htmlFor="phone" className="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1 font-medium">
-                  Numéro de téléphone <span className="text-error">*</span>
-                </label>
+              <FormField
+                id="phone"
+                label="Téléphone"
+                required
+                hint="Format: +225 0700000000"
+              >
                 <input
                   id="phone"
                   type="tel"
@@ -156,161 +205,240 @@ export default function NewPaymentPage() {
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder="+225 0700000000"
-                  className="w-full bg-surface-container-lowest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
+                  className={inputClass + " font-mono"}
+                  style={inputStyle}
                 />
-              </div>
+              </FormField>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-surface-container-high"></div>
-
-          {/* Section 2: Détails de la commande */}
-          <div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold mb-4">
-              Détails de la commande
-            </h2>
-            <div className="bg-surface-container-low rounded-lg p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border border-outline-variant/20">
-              <div className="flex flex-col md:col-span-2">
-                <label htmlFor="description" className="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1 font-medium">
-                  Description <span className="text-error">*</span>
-                </label>
-                <input
-                  id="description"
-                  type="text"
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Ex: Commande #001 - Chaussures de sport"
-                  className="w-full bg-surface-container-lowest text-on-surface font-body-medium text-[14px] p-2.5 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label htmlFor="amount" className="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1 font-medium">
-                  Montant à régler (FCFA) <span className="text-error">*</span>
-                </label>
-                <input
-                  id="amount"
-                  type="number"
-                  min="1"
-                  required
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : "")}
-                  placeholder="Ex: 5000"
-                  className="w-full bg-surface-container-lowest text-on-surface font-headline-md text-headline-md p-2 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all tabular-nums"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-surface-container-high"></div>
-
-          {/* Section 3: Moyen de paiement */}
-          <div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold mb-4">
-              Moyen de paiement
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* Carte bancaire */}
+          {/* Section 2: Commande */}
+          <div
+            className="bg-white rounded-2xl p-6 flex flex-col gap-5 mt-3"
+            style={{
+              boxShadow: '0 1px 3px rgba(20,27,43,0.06)',
+              border: '1px solid rgba(201,196,217,0.3)',
+            }}
+          >
+            <div className="flex items-center gap-3">
               <div
-                onClick={() => setPaymentMethod("card")}
-                className={`relative rounded-lg p-4 flex items-center justify-between shadow-sm cursor-pointer select-none transition-all ${
-                  paymentMethod === "card"
-                    ? "bg-primary-fixed/25 border-2 border-primary"
-                    : "bg-surface-container-low border border-outline-variant/30 hover:bg-surface-container-high/40"
-                }`}
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
               >
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${
-                    paymentMethod === "card" ? "bg-surface-container-lowest text-primary" : "bg-surface-container text-on-surface-variant"
-                  }`}>
-                    <span className="material-symbols-outlined text-[22px]">credit_card</span>
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
+              </div>
+              <h2 className="text-[14px] font-bold text-on-surface">Détails de la commande</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <FormField id="description" label="Description" required>
+                  <input
+                    id="description"
+                    type="text"
+                    required
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Ex: Commande #001 - Chaussures de sport"
+                    className={inputClass}
+                    style={inputStyle}
+                  />
+                </FormField>
+              </div>
+
+              <FormField id="amount" label="Montant (FCFA)" required>
+                <div className="relative">
+                  <input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : "")}
+                    placeholder="5 000"
+                    className={inputClass + " tabular-nums pr-14"}
+                    style={inputStyle}
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11.5px] font-semibold text-on-surface-variant/50 pointer-events-none">
+                    FCFA
+                  </span>
+                </div>
+              </FormField>
+            </div>
+          </div>
+
+          {/* Section 3: Payment Method */}
+          <div
+            className="bg-white rounded-2xl p-6 flex flex-col gap-5 mt-3"
+            style={{
+              boxShadow: '0 1px 3px rgba(20,27,43,0.06)',
+              border: '1px solid rgba(201,196,217,0.3)',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }}
+              >
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>wallet</span>
+              </div>
+              <h2 className="text-[14px] font-bold text-on-surface">Moyen de paiement</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Card */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("card")}
+                className="flex items-center justify-between p-4 rounded-2xl text-left transition-all"
+                style={paymentMethod === "card" ? {
+                  background: 'rgba(84,39,230,0.06)',
+                  border: '2px solid #5427e6',
+                } : {
+                  background: 'rgba(244,245,251,0.6)',
+                  border: '1.5px solid rgba(201,196,217,0.4)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={paymentMethod === "card"
+                      ? { background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }
+                      : { background: 'rgba(233,237,255,0.8)' }
+                    }
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '20px',
+                        color: paymentMethod === "card" ? '#fff' : '#484556',
+                        fontVariationSettings: "'FILL' 1",
+                      }}
+                    >credit_card</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-body-medium text-body-medium text-on-surface font-semibold">Carte bancaire</span>
-                    <span className="font-caption text-caption text-on-surface-variant">Visa, Mastercard</span>
+                    <span className={`text-[13.5px] font-bold ${paymentMethod === "card" ? "text-primary" : "text-on-surface"}`}>
+                      Carte bancaire
+                    </span>
+                    <span className="text-[11.5px] text-on-surface-variant">Visa, Mastercard</span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
-                  paymentMethod === "card" ? "border-primary bg-primary" : "border-outline bg-transparent"
-                }`}>
-                  {paymentMethod === "card" && <div className="w-2 h-2 rounded-full bg-surface-container-lowest"></div>}
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                  style={paymentMethod === "card"
+                    ? { background: '#5427e6', border: '2px solid #5427e6' }
+                    : { background: 'transparent', border: '1.5px solid rgba(201,196,217,0.7)' }
+                  }
+                >
+                  {paymentMethod === "card" && (
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  )}
                 </div>
-              </div>
+              </button>
 
               {/* Mobile Money */}
-              <div
+              <button
+                type="button"
                 onClick={() => setPaymentMethod("mobile_money")}
-                className={`relative rounded-lg p-4 flex items-center justify-between shadow-sm cursor-pointer select-none transition-all ${
-                  paymentMethod === "mobile_money"
-                    ? "bg-primary-fixed/25 border-2 border-primary"
-                    : "bg-surface-container-low border border-outline-variant/30 hover:bg-surface-container-high/40"
-                }`}
+                className="flex items-center justify-between p-4 rounded-2xl text-left transition-all"
+                style={paymentMethod === "mobile_money" ? {
+                  background: 'rgba(84,39,230,0.06)',
+                  border: '2px solid #5427e6',
+                } : {
+                  background: 'rgba(244,245,251,0.6)',
+                  border: '1.5px solid rgba(201,196,217,0.4)',
+                }}
               >
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${
-                    paymentMethod === "mobile_money" ? "bg-surface-container-lowest text-primary" : "bg-surface-container text-on-surface-variant"
-                  }`}>
-                    <span className="material-symbols-outlined text-[22px]">smartphone</span>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={paymentMethod === "mobile_money"
+                      ? { background: 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)' }
+                      : { background: 'rgba(233,237,255,0.8)' }
+                    }
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '20px',
+                        color: paymentMethod === "mobile_money" ? '#fff' : '#484556',
+                        fontVariationSettings: "'FILL' 1",
+                      }}
+                    >smartphone</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-body-medium text-body-medium text-on-surface font-semibold">Mobile Money</span>
-                    <span className="font-caption text-caption text-on-surface-variant">Orange, MTN, Moov, Wave</span>
+                    <span className={`text-[13.5px] font-bold ${paymentMethod === "mobile_money" ? "text-primary" : "text-on-surface"}`}>
+                      Mobile Money
+                    </span>
+                    <span className="text-[11.5px] text-on-surface-variant">Orange, MTN, Moov, Wave</span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
-                  paymentMethod === "mobile_money" ? "border-primary bg-primary" : "border-outline bg-transparent"
-                }`}>
-                  {paymentMethod === "mobile_money" && <div className="w-2 h-2 rounded-full bg-surface-container-lowest"></div>}
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                  style={paymentMethod === "mobile_money"
+                    ? { background: '#5427e6', border: '2px solid #5427e6' }
+                    : { background: 'transparent', border: '1.5px solid rgba(201,196,217,0.7)' }
+                  }
+                >
+                  {paymentMethod === "mobile_money" && (
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  )}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
 
-          {/* Payment Action */}
-          <div className="mt-4 flex flex-col items-center gap-3">
+          {/* ── Submit Section ── */}
+          <div className="mt-4 flex flex-col gap-3">
+            {/* Order summary preview */}
+            {formattedAmount && (
+              <div
+                className="flex items-center justify-between px-4 py-3 rounded-xl animate-fade-in"
+                style={{ background: 'rgba(233,237,255,0.6)', border: '1px solid rgba(201,196,217,0.3)' }}
+              >
+                <span className="text-[12.5px] text-on-surface-variant">Total à régler</span>
+                <span className="text-[15px] font-bold text-on-surface tabular-nums">{formattedAmount}</span>
+              </div>
+            )}
+
             <button
               id="pay-btn"
               type="submit"
               disabled={isProcessing || isSuccess}
-              className={`w-full h-11 text-on-primary font-body-medium text-body-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm font-semibold ${
-                isProcessing
-                  ? "bg-primary opacity-80 cursor-wait"
-                  : isSuccess
-                  ? "bg-secondary hover:bg-secondary cursor-default"
-                  : "bg-primary-container hover:bg-primary active:scale-[0.99]"
-              }`}
+              className="w-full h-12 rounded-2xl text-white text-[14px] font-bold transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              style={{
+                background: isSuccess
+                  ? 'linear-gradient(135deg, #006e2f 0%, #00a346 100%)'
+                  : 'linear-gradient(135deg, #5427e6 0%, #6d4aff 100%)',
+              }}
             >
               {isProcessing ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
                   <span>Traitement en cours...</span>
                 </>
               ) : isSuccess ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span>Redirection vers Paystack...</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">lock</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>lock</span>
                   <span>
-                    Payer {amount ? `${Number(amount).toLocaleString('fr-FR')} FCFA` : 'maintenant'}
+                    {formattedAmount ? `Payer ${formattedAmount}` : 'Payer maintenant'}
                   </span>
                 </>
               )}
             </button>
 
-            <div className="inline-flex items-center gap-1.5 text-on-surface-variant font-body-secondary text-body-secondary">
-              <span className="material-symbols-outlined text-[15px] text-on-surface-variant">lock</span>
-              <span>Paiement sécurisé et chiffré SSL 256-bit</span>
+            <div className="flex items-center justify-center gap-1.5 text-on-surface-variant/60">
+              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>lock</span>
+              <span className="text-[11.5px]">Paiement sécurisé via Paystack · SSL 256-bit</span>
             </div>
           </div>
-
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

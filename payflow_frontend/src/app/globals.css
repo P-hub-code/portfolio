@@ -12,7 +12,7 @@
   --color-inverse-primary: #c9bfff;
 
   /* Surfaces & Background */
-  --color-surface: #f9f9ff;
+  --color-surface: #f4f5fb;
   --color-surface-dim: #d3daef;
   --color-surface-bright: #f9f9ff;
   --color-surface-container-lowest: #ffffff;
@@ -76,15 +76,61 @@
     padding: 0;
   }
   body {
-    background-color: #F8F9FC;
-    color: #111827;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
     font-family: var(--font-inter);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Hide scrollbar for clean dashboard look */
+/* ─── Scrollbar styling ─── */
 ::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c9c4d9;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9490a0;
+}
+
+/* ─── Animations ─── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease both;
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease both;
+}
+
+/* ─── Staggered children ─── */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+
+/* ─── Skeleton loader ─── */
+.skeleton {
+  background: linear-gradient(90deg, #e9edff 25%, #f1f3ff 50%, #e9edff 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
 }
