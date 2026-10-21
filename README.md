@@ -16,9 +16,12 @@ Bienvenue sur mon portfolio d'ingénierie logicielle. Cet espace regroupe une s�
 ### 1. 💳 [Payflow] — Passerelle de Paiement & Tableau de Bord Financier
 Système d'encaissement et de réconciliation financière en temps réel interconnecté avec l'agrégateur de paiement **Paystack** pour l'Afrique de l'Ouest (FCFA / XOF).
 
+> 🔗 **Accès direct** : [Démo Live Frontend (Vercel)](https://payflow-frontend-eta.vercel.app/)
+
 - **Frontend** ([payflow_frontend](file:///c:/Users/Administrator/portfolio/payflow_frontend)) :
   - **Technologies** : Next.js 16 (App Router), React 19, Tailwind CSS v4 (@theme tokens), TypeScript.
   - **Fonctionnalités** : Tableau de bord analytique en temps réel (KPIs, volume financier, taux de succès), terminal de paiement sécurisé, moteur de polling de statut post-paiement, grand livre des transactions filtrable et console de monitoring des webhooks.
+  - 🔗 **Démo en ligne** : [Démo Live Frontend (Vercel)](https://payflow-frontend-eta.vercel.app/)
   - 📖 **Documentation** : [README](file:///c:/Users/Administrator/portfolio/payflow_frontend/README.md) · [Architecture](file:///c:/Users/Administrator/portfolio/payflow_frontend/ARCHITECTURE.md) · [Déploiement](file:///c:/Users/Administrator/portfolio/payflow_frontend/DEPLOYMENT.md) · [Contribution](file:///c:/Users/Administrator/portfolio/payflow_frontend/CONTRIBUTING.md)
 
 - **Backend** ([payflow_backend](file:///c:/Users/Administrator/portfolio/payflow_backend)) :
@@ -32,8 +35,11 @@ Système d'encaissement et de réconciliation financière en temps réel interco
 Plateforme complète de mobilité à la demande (VTC, tricycles, logistique urbaine) et de paiement digital P2P.  
 *Expérience réalisée chez **Elite Upwork (Abidjan)** (08 Janvier – 11 Mars 2026).*
 
+> 📱 **Téléchargement direct** : [Télécharger l'APK de Démonstration (Android)](https://drive.google.com/file/d/1qzN5ngYkboZouj4QJQMYHjt8FIkTd9wr/view?usp=sharing)
+
 - **Application Mobile** ([messay](file:///c:/Users/Administrator/portfolio/messay)) :
   - **Technologies** : React Native, TypeScript, Redux Toolkit, React Navigation, Firebase Phone Auth (SMS OTP).
+  - 📱 **Démo Android** : [Télécharger l'APK de Démonstration (Android)](https://drive.google.com/file/d/1qzN5ngYkboZouj4QJQMYHjt8FIkTd9wr/view?usp=sharing)
   - 📖 **Documentation** : [README](file:///c:/Users/Administrator/portfolio/messay/README.md) · [Overview](file:///c:/Users/Administrator/portfolio/messay/overview.md) · [Responsabilités](file:///c:/Users/Administrator/portfolio/messay/responsibilities.md) · [Vérification](file:///c:/Users/Administrator/portfolio/messay/verification.md)
 
 - **API REST Backend** ([messay-api](file:///c:/Users/Administrator/portfolio/messay-api)) :
